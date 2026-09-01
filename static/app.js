@@ -99,6 +99,8 @@
   let selectedId = 'AMP';
   let busy = false;
 
+  const PRESETS_KEY = 'mk300_saved_presets';
+
   function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
   function clampNum(v) {
@@ -111,6 +113,114 @@
     return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
     }[c]));
+  }
+
+  /* ─── Presets salvos (localStorage) ─── */
+
+  function normalizeQuery(q) {
+    return String(q || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  }
+
+  function loadPresetsStore() {
+    try {
+      const raw = localStorage.getItem(PRESETS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  function savePresetsStore(store) {
+    try {
+      localStorage.setItem(PRESETS_KEY, JSON.stringify(store));
+    } catch (e) {
+      /* localStorage indisponível (modo privado, quota, etc.) — ignora silenciosamente */
+    }
+  }
+
+  function getPreset(query) {
+    const store = loadPresetsStore();
+    return store[normalizeQuery(query)] || null;
+  }
+
+  function upsertPreset(query, toneData, midiData) {
+    const store = loadPresetsStore();
+    const key = normalizeQuery(query);
+    store[key] = {
+      query: String(query).trim(),
+      toneData,
+      midiData,
+      savedAt: Date.now(),
+    };
+    savePresetsStore(store);
+    renderPresetsList();
+  }
+
+  function removePreset(key) {
+    const store = loadPresetsStore();
+    delete store[key];
+    savePresetsStore(store);
+    renderPresetsList();
+  }
+
+  function clearAllPresets() {
+    savePresetsStore({});
+    renderPresetsList();
+    toast('Presets salvos removidos.');
+  }
+
+  function formatRelativeTime(ts) {
+    const diff = Math.max(0, Date.now() - ts);
+    const min = Math.floor(diff / 60000);
+    if (min < 1) return 'agora';
+    if (min < 60) return `${min} min`;
+    const h = Math.floor(min / 60);
+    if (h < 24) return `${h} h`;
+    const d = Math.floor(h / 24);
+    return `${d} d`;
+  }
+
+  function renderPresetsList() {
+    if (!els.presetsList) return;
+    const store = loadPresetsStore();
+    const entries = Object.entries(store).sort((a, b) => b[1].savedAt - a[1].savedAt);
+    if (els.presetsCount) els.presetsCount.textContent = String(entries.length);
+
+    if (entries.length === 0) {
+      els.presetsList.innerHTML = '<li class="presets-empty">Nenhum preset salvo ainda. Suas buscas s&atilde;o salvas automaticamente.</li>';
+      return;
+    }
+
+    els.presetsList.innerHTML = entries.map(([key, entry]) => `
+      <li class="preset-item" data-key="${escapeHtml(key)}">
+        <button type="button" class="preset-item-main" data-key="${escapeHtml(key)}">
+          <span class="preset-item-title">${escapeHtml(entry.query)}</span>
+          <span class="preset-item-time mono">${formatRelativeTime(entry.savedAt)}</span>
+        </button>
+        <button type="button" class="preset-item-remove" data-key="${escapeHtml(key)}" aria-label="Remover preset">&times;</button>
+      </li>
+    `).join('');
+  }
+
+  function positionPresetsPanel() {
+    const rect = els.presetsBtn.getBoundingClientRect();
+    const panelWidth = Math.min(300, window.innerWidth - 24);
+    let left = rect.right - panelWidth;
+    left = Math.max(12, Math.min(left, window.innerWidth - panelWidth - 12));
+    let top = rect.bottom + 8;
+    top = Math.min(top, window.innerHeight - 60);
+    els.presetsPanel.style.left = `${left}px`;
+    els.presetsPanel.style.top = `${top}px`;
+  }
+
+  function togglePresetsPanel(force) {
+    const open = typeof force === 'boolean' ? force : els.presetsPanel.hidden;
+    els.presetsPanel.hidden = !open;
+    els.presetsBtn.setAttribute('aria-expanded', String(open));
+    if (open) {
+      renderPresetsList();
+      positionPresetsPanel();
+    }
   }
 
   function buildDefaultState() {
@@ -359,7 +469,23 @@
     const q = (query || '').trim();
     if (!q || busy) return;
 
+    // ─ Preset já salvo com esse nome: usa o cache local, sem requisição extra ─
+    const cached = getPreset(q);
+    if (cached) {
+      applyToneData(cached.toneData);
+      renderMidiResults(cached.midiData);
+      els.searchInput.value = cached.query;
+      setStatus('idle');
+      togglePresetsPanel(false);
+      toast(`Preset salvo carregado: ${cached.query} (sem nova requisição)`);
+      return;
+    }
+
     setBusy(true);
+    let toneDataOk = null;
+    let midiDataOk = null;
+    let toneSucceeded = false;
+
     const [toneRes, midiRes] = await Promise.allSettled([
       fetch('/api/search-tone', {
         method: 'POST',
@@ -377,6 +503,8 @@
       try {
         const payload = await toneRes.value.json();
         if (toneRes.value.ok && payload.success) {
+          toneDataOk = payload.data;
+          toneSucceeded = true;
           applyToneData(payload.data);
           setStatus('idle');
           const song = (payload.data && payload.data.song_info) || {};
@@ -398,12 +526,18 @@
     if (midiRes.status === 'fulfilled') {
       try {
         const payload = await midiRes.value.json();
-        renderMidiResults(midiRes.value.ok && payload.success ? payload.data : null);
+        midiDataOk = midiRes.value.ok && payload.success ? payload.data : null;
+        renderMidiResults(midiDataOk);
       } catch (e) {
         renderMidiResults(null);
       }
     } else {
       renderMidiResults(null);
+    }
+
+    // ─ Só salva como preset quando a análise de timbre teve sucesso ─
+    if (toneSucceeded) {
+      upsertPreset(q, toneDataOk, midiDataOk);
     }
 
     setBusy(false);
@@ -468,6 +602,41 @@
 
     els.resetBtn.addEventListener('click', resetAll);
     document.addEventListener('keydown', handleKeydown);
+    window.addEventListener('resize', () => {
+      if (!els.presetsPanel.hidden) positionPresetsPanel();
+    });
+
+    // ─ Presets salvos ─
+    els.presetsBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      togglePresetsPanel();
+    });
+
+    els.presetsList.addEventListener('click', (e) => {
+      const removeBtn = e.target.closest('.preset-item-remove');
+      if (removeBtn) {
+        removePreset(removeBtn.dataset.key);
+        return;
+      }
+      const mainBtn = e.target.closest('.preset-item-main');
+      if (mainBtn) {
+        const store = loadPresetsStore();
+        const entry = store[mainBtn.dataset.key];
+        if (entry) {
+          els.searchInput.value = entry.query;
+          runAnalysis(entry.query);
+        }
+      }
+    });
+
+    els.presetsClearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      clearAllPresets();
+    });
+
+    els.presetsPanel.addEventListener('click', (e) => e.stopPropagation());
+
+    document.addEventListener('click', () => togglePresetsPanel(false));
   }
 
   function cacheEls() {
@@ -484,6 +653,11 @@
     els.midiStatus = document.getElementById('midi-status');
     els.songInfo = document.getElementById('song-info');
     els.toastContainer = document.getElementById('toast-container');
+    els.presetsBtn = document.getElementById('presets-btn');
+    els.presetsPanel = document.getElementById('presets-panel');
+    els.presetsList = document.getElementById('presets-list');
+    els.presetsCount = document.getElementById('presets-count');
+    els.presetsClearBtn = document.getElementById('presets-clear-btn');
   }
 
   function init() {
@@ -492,6 +666,7 @@
     baselineState = clone(moduleState);
     renderChain();
     renderModulePanel();
+    renderPresetsList();
     bindEvents();
     loadConfig();
   }
