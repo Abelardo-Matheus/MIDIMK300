@@ -98,6 +98,8 @@
   let baselineState = {};
   let selectedId = 'AMP';
   let busy = false;
+  let lastToneData = null;
+  let lastQuery = '';
 
   const PRESETS_KEY = 'mk300_saved_presets';
 
@@ -231,7 +233,7 @@
       if (m.id === 'AMP') {
         Object.assign(params, { gain: 50, bass: 55, middle: 50, treble: 58, presence: 50 });
       }
-      state[m.id] = { enabled: DEFAULT_ENABLED[m.id], params };
+      state[m.id] = { enabled: DEFAULT_ENABLED[m.id], params, type: null };
     });
     return state;
   }
@@ -292,7 +294,7 @@
           <span class="module-state">${st.enabled ? 'ON' : 'OFF'}</span>
         </div>
         <div class="module-name">${m.name}</div>
-        <div class="module-sub">${m.sub}</div>
+        <div class="module-sub">${st.type ? escapeHtml(st.type) : m.sub}</div>
       `;
       card.addEventListener('click', () => selectModule(m.id));
       els.chainTrack.appendChild(card);
@@ -330,6 +332,13 @@
       </div>
     `).join('');
 
+    const modelRowHtml = st.type ? `
+      <div class="module-model-row">
+        <span class="module-model-label">Modelo na pedaleira</span>
+        <span class="module-model-value mono">${escapeHtml(st.type)}</span>
+      </div>
+    ` : '';
+
     panel.innerHTML = `
       <div class="module-panel-header">
         <div>
@@ -341,6 +350,7 @@
           <button type="button" class="btn btn-outline" id="toggle-module-btn">${st.enabled ? 'DESLIGAR' : 'LIGAR'}</button>
         </div>
       </div>
+      ${modelRowHtml}
       <div id="param-list">${paramsHtml}</div>
       <div class="param-actions">
         <button type="button" class="btn-outline" id="copy-module-btn">Copiar ajustes do m&oacute;dulo</button>
@@ -402,13 +412,68 @@
       .join('');
 
     els.songInfo.innerHTML = `
-      <div>
-        <h3>${escapeHtml(song.artist || '')}${song.song ? ' — ' + escapeHtml(song.song) : ''}</h3>
-        <p>${escapeHtml(song.description || '')}${metaBits ? ' · ' + metaBits : ''}</p>
+      <div class="song-info-main">
+        <div>
+          <h3>${escapeHtml(song.artist || '')}${song.song ? ' — ' + escapeHtml(song.song) : ''}</h3>
+          <p>${escapeHtml(song.description || '')}${metaBits ? ' · ' + metaBits : ''}</p>
+        </div>
+        <button type="button" id="export-dzh-btn" class="btn btn-outline" title="Baixa um arquivo .dzh para carregar direto na MK-300 (beta)">
+          BAIXAR PRESET (.dzh)
+        </button>
       </div>
       <div class="tone-tags">${tags}</div>
     `;
     els.songInfo.hidden = false;
+
+    const exportBtn = document.getElementById('export-dzh-btn');
+    if (exportBtn) exportBtn.addEventListener('click', downloadDzhPreset);
+  }
+
+  /* ─── Export .dzh (preset binário para a MK-300) ─── */
+
+  async function downloadDzhPreset() {
+    if (!lastToneData) {
+      toast('Pesquise um timbre antes de baixar o preset.', 'error');
+      return;
+    }
+    const btn = document.getElementById('export-dzh-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'GERANDO...'; }
+    try {
+      const presetName = (lastToneData.song_info && lastToneData.song_info.song)
+        ? `${lastToneData.song_info.artist || ''} - ${lastToneData.song_info.song}`.trim()
+        : (lastQuery || 'MK300_PRESET');
+
+      const resp = await fetch('/api/export-dzh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tone_data: lastToneData, preset_name: presetName }),
+      });
+
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.error || `Erro HTTP ${resp.status}`);
+      }
+
+      const blob = await resp.blob();
+      const disposition = resp.headers.get('Content-Disposition') || '';
+      const match = /filename="?([^";]+)"?/.exec(disposition);
+      const filename = match ? match[1] : `${presetName.replace(/\s+/g, '_')}.dzh`;
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+
+      toast(`Preset .dzh baixado: ${filename} (beta — confira AMP/CAB/DS/VOL na pedaleira)`);
+    } catch (err) {
+      toast(`Não foi possível gerar o .dzh: ${err.message}`, 'error');
+    } finally {
+      if (btn) { btn.disabled = false; btn.textContent = 'BAIXAR PRESET (.dzh)'; }
+    }
   }
 
   /* ─── MIDI panel ─── */
@@ -443,6 +508,7 @@
   /* ─── Aplicar resultado da análise ─── */
 
   function applyToneData(data) {
+    lastToneData = data || null;
     const next = buildDefaultState();
     MODULES.forEach((m) => {
       const incoming = data && data[m.id];
@@ -453,7 +519,8 @@
           params[key] = clampNum(incoming.params[key]);
         }
       });
-      next[m.id] = { enabled: !!incoming.enabled, params };
+      const type = incoming.params && incoming.params.type ? String(incoming.params.type) : null;
+      next[m.id] = { enabled: !!incoming.enabled, params, type };
     });
     moduleState = next;
     baselineState = clone(next);
@@ -468,6 +535,7 @@
   async function runAnalysis(query) {
     const q = (query || '').trim();
     if (!q || busy) return;
+    lastQuery = q;
 
     // ─ Preset já salvo com esse nome: usa o cache local, sem requisição extra ─
     const cached = getPreset(q);
@@ -563,6 +631,8 @@
     baselineState = clone(moduleState);
     selectedId = 'AMP';
     els.searchInput.value = '';
+    lastToneData = null;
+    lastQuery = '';
     renderSongInfo(null);
     resetMidiPanel();
     renderChain();
