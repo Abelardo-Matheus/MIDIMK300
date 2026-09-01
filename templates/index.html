@@ -3,170 +3,95 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MK-300 Tone Assistant — Assistente de Timbres M-VAVE</title>
-  <meta name="description" content="Assistente visual de timbres para a pedaleira M-VAVE MK-300. Analise qualquer música e obtenha os parâmetros exatos para configurar seus 11 módulos de efeitos.">
-  <link rel="stylesheet" href="/static/style.css?v=1.0.1">
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎸</text></svg>">
+  <title>MK-300 Tone Assistant — M-VAVE</title>
+  <meta name="description" content="Assistente de timbres para a pedaleira M-VAVE MK-300. Analise qualquer música e obtenha os parâmetros dos 11 módulos de efeitos.">
+  <link rel="stylesheet" href="/static/style.css?v=2.0.0">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230a0a0a'/%3E%3Crect x='5' y='14' width='3' height='6' fill='%23e0b070'/%3E%3Crect x='11' y='9' width='3' height='16' fill='%23e0b070'/%3E%3Crect x='17' y='4' width='3' height='24' fill='%23e0b070'/%3E%3Crect x='23' y='11' width='3' height='11' fill='%23e0b070'/%3E%3C/svg%3E">
 </head>
 <body>
+  <div class="app">
 
-  <!-- ─── Header ─── -->
-  <header>
-    <div class="header-logo">
-      <div class="logo-icon">🎸</div>
-      <div class="logo-text">
-        <h1>MK-300 Tone Assistant</h1>
-        <p>Assistente Visual de Timbres · M-VAVE MK-300</p>
+    <!-- ─── Header ─── -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">MK</div>
+        <div class="brand-text">
+          <h1>MK-300 Tone Assistant</h1>
+          <p class="brand-sub">M-VAVE MK-300 &middot; 11 m&oacute;dulos <span id="provider-info" class="provider-info"></span></p>
+        </div>
       </div>
-    </div>
-    <div class="header-badge">
-      <div class="provider-dot"></div>
-      <span id="provider-badge">Carregando...</span>
-      <button id="api-key-btn" title="Configurar chave de API"
-              style="background:none; border:none; cursor:pointer; color:var(--text-muted); padding:0 4px; font-size:14px; margin-left:4px;">⚙️</button>
-    </div>
-  </header>
-
-  <!-- ─── Main ─── -->
-  <main>
-
-    <!-- Search Section -->
-    <section class="search-section" aria-labelledby="search-heading">
-      <div class="search-title" id="search-heading">
-        🎵 Pesquisar Timbre
+      <div class="header-actions">
+        <span id="status-pill" class="status-pill" data-state="idle">PRONTO</span>
+        <button id="reset-btn" class="btn btn-ghost" type="button" title="Restaurar configura&ccedil;&atilde;o inicial">RESET</button>
       </div>
+    </header>
 
-      <div class="search-wrapper">
-        <form id="search-form" role="search" aria-label="Busca de timbre">
-          <span class="search-icon" aria-hidden="true">🔍</span>
+    <main>
+
+      <!-- ─── Busca ─── -->
+      <section class="search-panel" aria-labelledby="search-heading">
+        <h2 id="search-heading" class="sr-only">Pesquisar timbre</h2>
+        <form id="search-form" class="search-form" role="search" aria-label="Busca de timbre">
           <input
-            type="search"
             id="search-input"
-            class="search-bar"
-            placeholder="Ex: Comfortably Numb – Pink Floyd, Metallica, Slash tone..."
+            type="search"
+            class="search-input"
+            placeholder="M&uacute;sica, artista ou timbre &mdash; ex: Comfortably Numb, Pink Floyd"
             autocomplete="off"
-            aria-label="Buscar música, artista ou timbre"
+            aria-label="M&uacute;sica, artista ou timbre"
           >
-          <button type="submit" id="search-btn" class="search-btn" aria-label="Analisar timbre">
-            ⚡ Analisar Timbre
+          <button type="submit" id="search-btn" class="btn btn-accent">
+            <span class="btn-label">Analisar timbre</span>
           </button>
         </form>
-      </div>
-
-      <div class="search-examples" role="list" aria-label="Exemplos de busca">
-        <span class="search-example" data-query="Comfortably Numb - Pink Floyd" role="listitem" tabindex="0">🎸 Pink Floyd</span>
-        <span class="search-example" data-query="Enter Sandman - Metallica" role="listitem" tabindex="0">🤘 Metallica</span>
-        <span class="search-example" data-query="November Rain - Guns N' Roses" role="listitem" tabindex="0">🌹 Guns N' Roses</span>
-        <span class="search-example" data-query="Sultans of Swing - Dire Straits" role="listitem" tabindex="0">🎵 Dire Straits</span>
-        <span class="search-example" data-query="Stevie Ray Vaughan blues tone" role="listitem" tabindex="0">🔵 SRV Blues</span>
-        <span class="search-example" data-query="John Mayer clean tone" role="listitem" tabindex="0">✨ John Mayer</span>
-      </div>
-    </section>
-
-    <!-- Song Info Card -->
-    <div id="song-info-card" class="song-info-card" role="region" aria-label="Informações do timbre">
-      <div class="song-info-inner">
-        <div class="song-avatar" id="song-avatar" aria-hidden="true">🎸</div>
-        <div class="song-details">
-          <h2 id="song-name">—</h2>
-          <div class="song-artist" id="song-artist"></div>
-          <div class="song-desc" id="song-desc"></div>
+        <div class="preset-row" role="list" aria-label="Exemplos de busca">
+          <button type="button" class="chip" data-query="Comfortably Numb - Pink Floyd" role="listitem">Pink Floyd</button>
+          <button type="button" class="chip" data-query="Enter Sandman - Metallica" role="listitem">Metallica</button>
+          <button type="button" class="chip" data-query="Sultans of Swing - Dire Straits" role="listitem">Dire Straits</button>
+          <button type="button" class="chip" data-query="Texas Flood - Stevie Ray Vaughan" role="listitem">SRV Blues</button>
+          <button type="button" class="chip" data-query="Gravity - John Mayer" role="listitem">John Mayer</button>
         </div>
-        <div class="song-tags" id="song-tags" aria-label="Tags do estilo"></div>
-      </div>
-    </div>
+      </section>
 
-    <!-- Signal Chain Section -->
-    <section class="chain-section" aria-labelledby="chain-heading">
-      <div class="section-header">
-        <span class="section-label" id="chain-heading">Cadeia de Sinal · MK-300</span>
-        <div class="section-line" aria-hidden="true"></div>
-        <span class="section-label" aria-label="11 módulos">11 Módulos</span>
-      </div>
+      <!-- ─── Song / Tone info (aparece após análise) ─── -->
+      <section id="song-info" class="song-info" hidden></section>
 
-      <!-- Guitar Input Indicator -->
-      <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px; padding-left:4px;">
-        <span style="font-size:20px;">🎸</span>
-        <span style="font-size:11px; color:var(--text-muted); letter-spacing:1px;">INPUT</span>
-        <div style="width:20px; height:2px; background:rgba(255,255,255,0.1);"></div>
-      </div>
-
-      <div class="chain-container" role="list" aria-label="Cadeia de pedais de efeito">
-        <div class="chain-wrapper" id="chain-wrapper">
-          <!-- Pedais renderizados via JavaScript -->
+      <!-- ─── Cadeia de sinal ─── -->
+      <section class="chain-section" aria-labelledby="chain-heading">
+        <div class="chain-header">
+          <h2 id="chain-heading">Cadeia de Sinal</h2>
+          <span id="chain-summary" class="chain-summary mono">8 ativos &middot; 3 bypass</span>
         </div>
-      </div>
-
-      <!-- Output Indicator -->
-      <div style="display:flex; align-items:center; gap:8px; margin-top:8px; justify-content:flex-end; padding-right:4px;">
-        <div style="width:20px; height:2px; background:rgba(255,255,255,0.1);"></div>
-        <span style="font-size:11px; color:var(--text-muted); letter-spacing:1px;">OUTPUT</span>
-        <span style="font-size:20px;">🎛️</span>
-      </div>
-
-      <p style="font-size:12px; color:var(--text-muted); margin-top:16px; text-align:center;">
-        💡 Clique em qualquer pedal para ver os parâmetros configurados pela IA
-      </p>
-    </section>
-
-    <!-- MIDI Card -->
-    <section class="midi-card" aria-labelledby="midi-heading">
-      <div class="midi-header">
-        <div class="midi-icon" aria-hidden="true">🎹</div>
-        <div>
-          <div class="midi-title" id="midi-heading">Backing Track · MIDI</div>
-          <div class="midi-subtitle">Arquivos MIDI relacionados à música pesquisada</div>
+        <div id="chain-track" class="chain-track" role="list" aria-label="M&oacute;dulos da MK-300"></div>
+        <div class="chain-io">
+          <span>Input &#9656; Guitarra</span>
+          <span>Sa&iacute;da &#9656; Amp / PA</span>
         </div>
-        <div class="midi-status" id="midi-status" role="status" aria-live="polite">
-          Aguardando busca...
+      </section>
+
+      <!-- ─── Painel de detalhes + MIDI ─── -->
+      <section class="detail-grid">
+        <div id="module-panel" class="module-panel" aria-live="polite"></div>
+
+        <div class="midi-panel">
+          <div class="midi-header">
+            <div>
+              <h3>Backing track &middot; MIDI</h3>
+              <p class="muted">Arquivos da m&uacute;sica pesquisada</p>
+            </div>
+            <span id="midi-status" class="status-pill status-pill-sm" data-state="idle">AGUARDANDO</span>
+          </div>
+          <div id="midi-results" class="midi-results">
+            <p class="midi-empty">Pesquise um timbre para listar arquivos MIDI relacionados.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div class="midi-results" id="midi-results" role="list" aria-label="Resultados MIDI">
-        <div class="midi-empty">
-          <div style="font-size: 32px; margin-bottom: 12px;">🎵</div>
-          <p>Pesquise um timbre acima para encontrar<br>arquivos MIDI relacionados à música.</p>
-        </div>
-      </div>
-
-      <div class="midi-external-links" id="midi-external-links"></div>
-    </section>
-
-  </main>
-
-  <!-- ─── Loading Overlay ─── -->
-  <div id="loading-overlay" class="loading-overlay" role="dialog" aria-modal="true" aria-label="Carregando análise">
-    <div class="loading-spinner" aria-hidden="true"></div>
-    <div class="loading-text" id="loading-text">Analisando timbre com IA...</div>
-    <div style="font-size:12px; color:var(--text-muted); margin-top:8px;">
-      Mapeando equipamentos para os 11 módulos da MK-300...
-    </div>
+    </main>
   </div>
 
-  <!-- ─── Modal Overlay ─── -->
-  <div id="modal-overlay" class="modal-overlay" role="presentation" aria-hidden="true"></div>
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- ─── Modal Panel ─── -->
-  <aside id="modal-panel" class="modal-panel" role="dialog" aria-modal="true" aria-label="Parâmetros do pedal">
-    <div class="modal-header">
-      <div class="modal-pedal-icon" id="modal-icon" aria-hidden="true">🎛️</div>
-      <div>
-        <div class="modal-pedal-name" id="modal-name">—</div>
-        <div class="modal-pedal-type" id="modal-type">—</div>
-      </div>
-      <span class="modal-status-badge off" id="modal-status">BYPASS</span>
-      <button class="modal-close" id="modal-close" aria-label="Fechar painel">✕</button>
-    </div>
-    <div class="modal-content" id="modal-content">
-      <!-- Conteúdo gerado via JavaScript -->
-    </div>
-  </aside>
-
-  <!-- ─── Toast ─── -->
-  <div id="toast" class="toast" role="alert" aria-live="assertive"></div>
-
-  <!-- ─── Scripts ─── -->
-  <script src="/static/app.js?v=1.0.1"></script>
-
+  <script src="/static/app.js?v=2.0.0"></script>
 </body>
 </html>

@@ -1,531 +1,500 @@
-/**
- * MK-300 Visual Tone Assistant — Frontend JavaScript
- * Gerencia a cadeia de sinal, modal de parâmetros e busca MIDI
- */
+/* ============================================================
+   MK-300 Tone Assistant — front-end
+   Cadeia de 11 módulos clicável, painel de parâmetros com
+   sliders ao vivo, MIDI, toasts e navegação por teclado.
+   Dados reais via /api/search-tone, /api/search-midi, /api/config.
+   ============================================================ */
 
-// ─────────────────────────────────────────────
-// CONFIGURAÇÃO DOS 11 MÓDULOS DA MK-300
-// ─────────────────────────────────────────────
+(function () {
+  'use strict';
 
-const PEDAL_CONFIG = {
-  WAH:  { icon: '🦶', color: '#d97706', label: 'Expressão / Wah',    order: 1 },
-  FX:   { icon: '⚡', color: '#7c3aed', label: 'FX / Compressor',    order: 2 },
-  GATE: { icon: '🚧', color: '#64748b', label: 'Noise Gate',         order: 3 },
-  DS:   { icon: '🔥', color: '#dc2626', label: 'Drive / Distortion', order: 4 },
-  AMP:  { icon: '🎚️', color: '#ea580c', label: 'Amplificador',       order: 5 },
-  CAB:  { icon: '📦', color: '#78716c', label: 'Gabinete (CAB Sim)', order: 6 },
-  EQ:   { icon: '🎛️', color: '#65a30d', label: 'Equalizador',        order: 7 },
-  MOD:  { icon: '🌊', color: '#2563eb', label: 'Modulação',          order: 8 },
-  DLY:  { icon: '🔁', color: '#0891b2', label: 'Delay / Eco',        order: 9 },
-  REV:  { icon: '🌐', color: '#0d9488', label: 'Reverb',             order: 10 },
-  VOL:  { icon: '🔊', color: '#6b7280', label: 'Volume Pedal',       order: 11 },
-};
+  const MODULES = [
+    { id: 'WAH', name: 'WAH', sub: 'Wah / Expressão',
+      hint: 'O bloco WAH simula pedal de expressão. Ajuste Sensitivity conforme a dinâmica da palhetada.',
+      params: [
+        { key: 'sensitivity', label: 'Sensitivity' },
+        { key: 'freq', label: 'Freq' },
+        { key: 'level', label: 'Level' },
+      ] },
+    { id: 'FX', name: 'FX', sub: 'Compressor / FX',
+      hint: 'O bloco FX cobre compressão e modulação de entrada. Use com moderação antes da distorção.',
+      params: [
+        { key: 'rate', label: 'Rate' },
+        { key: 'depth', label: 'Depth' },
+        { key: 'level', label: 'Level' },
+      ] },
+    { id: 'GATE', name: 'GATE', sub: 'Noise Gate',
+      hint: 'O bloco GATE corta ruído entre notas. Suba o Threshold aos poucos até o ruído sumir.',
+      params: [
+        { key: 'threshold', label: 'Threshold' },
+        { key: 'decay', label: 'Decay' },
+      ] },
+    { id: 'DS', name: 'DS', sub: 'Drive / Distortion',
+      hint: 'O bloco DS define a saturação. Ajuste Tone para equilibrar brilho e corpo.',
+      params: [
+        { key: 'gain', label: 'Gain' },
+        { key: 'tone', label: 'Tone' },
+        { key: 'level', label: 'Level' },
+      ] },
+    { id: 'AMP', name: 'AMP', sub: 'Amplificador',
+      hint: 'O bloco AMP define o caráter. Ajuste Presence por último, com o volume real.',
+      params: [
+        { key: 'gain', label: 'Gain' },
+        { key: 'bass', label: 'Bass' },
+        { key: 'middle', label: 'Middle' },
+        { key: 'treble', label: 'Treble' },
+        { key: 'presence', label: 'Presence' },
+      ] },
+    { id: 'CAB', name: 'CAB', sub: 'Gabinete (CAB)',
+      hint: 'O bloco CAB simula o gabinete e o microfone. Pequenos ajustes de Level já mudam bastante o timbre.',
+      params: [
+        { key: 'level', label: 'Level' },
+      ] },
+    { id: 'EQ', name: 'EQ', sub: 'Equalizador',
+      hint: 'O bloco EQ refina o que sobrou depois do amp. Corte antes de aumentar.',
+      params: [
+        { key: 'bass', label: 'Bass' },
+        { key: 'low_mid', label: 'Low-Mid' },
+        { key: 'mid', label: 'Mid' },
+        { key: 'high_mid', label: 'High-Mid' },
+        { key: 'treble', label: 'Treble' },
+        { key: 'level', label: 'Level' },
+      ] },
+    { id: 'MOD', name: 'MOD', sub: 'Modulação',
+      hint: 'O bloco MOD adiciona movimento ao sinal. Rates mais baixos soam mais sutis.',
+      params: [
+        { key: 'rate', label: 'Rate' },
+        { key: 'depth', label: 'Depth' },
+        { key: 'level', label: 'Level' },
+      ] },
+    { id: 'DLY', name: 'DLY', sub: 'Delay',
+      hint: 'O bloco DLY repete o sinal no tempo. Sincronize Feedback e Mix com a música.',
+      params: [
+        { key: 'time', label: 'Time' },
+        { key: 'feedback', label: 'Feedback' },
+        { key: 'mix', label: 'Mix' },
+      ] },
+    { id: 'REV', name: 'REV', sub: 'Reverb',
+      hint: 'O bloco REV adiciona espaço. Pre-Delay maior separa o sinal seco da cauda.',
+      params: [
+        { key: 'decay', label: 'Decay' },
+        { key: 'pre_delay', label: 'Pre-Delay' },
+        { key: 'mix', label: 'Mix' },
+      ] },
+    { id: 'VOL', name: 'VOL', sub: 'Volume',
+      hint: 'O bloco VOL é o volume final da cadeia, após todos os efeitos.',
+      params: [
+        { key: 'volume', label: 'Volume' },
+      ] },
+  ];
 
-const CHAIN_ORDER = ['WAH', 'FX', 'GATE', 'DS', 'AMP', 'CAB', 'EQ', 'MOD', 'DLY', 'REV', 'VOL'];
-
-// Estado global da aplicação
-const AppState = {
-  currentToneData: null,
-  selectedPedal: null,
-  llmProvider: null,
-};
-
-// ─────────────────────────────────────────────
-// UTILITÁRIOS
-// ─────────────────────────────────────────────
-
-function showToast(msg, type = 'info') {
-  const toast = document.getElementById('toast');
-  const icon = type === 'error' ? '❌' : type === 'success' ? '✅' : 'ℹ️';
-  toast.innerHTML = `<span>${icon}</span><span>${msg}</span>`;
-  toast.className = `toast ${type} visible`;
-  setTimeout(() => toast.classList.remove('visible'), 4000);
-}
-
-function setLoading(visible, text = 'Analisando timbre com IA...') {
-  const overlay = document.getElementById('loading-overlay');
-  const loadingText = document.getElementById('loading-text');
-  loadingText.textContent = text;
-  overlay.classList.toggle('visible', visible);
-}
-
-function capitalize(str) {
-  if (!str) return '';
-  return str.charAt(0).toUpperCase() + str.slice(1);
-}
-
-// ─────────────────────────────────────────────
-// INICIALIZAÇÃO E CONFIG
-// ─────────────────────────────────────────────
-
-async function loadConfig() {
-  try {
-    const resp = await fetch('/api/config');
-    const data = await resp.json();
-    AppState.llmProvider = data.provider;
-    const badge = document.getElementById('provider-badge');
-    if (badge) {
-      badge.textContent = `${data.provider.toUpperCase()} · ${data.model}`;
-    }
-  } catch (e) {
-    console.warn('Não foi possível carregar configurações:', e);
-  }
-}
-
-// ─────────────────────────────────────────────
-// CADEIA DE SINAL — RENDERIZAÇÃO
-// ─────────────────────────────────────────────
-
-function renderChain(toneData) {
-  const container = document.getElementById('chain-wrapper');
-  container.innerHTML = '';
-
-  CHAIN_ORDER.forEach((pedalId, index) => {
-    const config = PEDAL_CONFIG[pedalId];
-    const moduleData = toneData ? toneData[pedalId] : null;
-    const isEnabled = moduleData ? moduleData.enabled : false;
-
-    // Bloco do pedal
-    const pedalEl = document.createElement('div');
-    pedalEl.className = `pedal-block ${isEnabled ? 'active' : 'inactive'}`;
-    pedalEl.id = `pedal-${pedalId}`;
-    pedalEl.style.setProperty('--pedal-color', config.color);
-    pedalEl.setAttribute('data-pedal', pedalId);
-    pedalEl.setAttribute('aria-label', `${pedalId} — ${config.label}`);
-    pedalEl.setAttribute('role', 'button');
-    pedalEl.setAttribute('tabindex', '0');
-
-    // Nome do tipo (ex: "Tube Screamer")
-    const typeName = moduleData?.params?.type && moduleData.params.type !== 'None'
-      ? moduleData.params.type
-      : config.label;
-
-    pedalEl.innerHTML = `
-      <div class="pedal-body">
-        <div class="pedal-led"></div>
-        <div class="pedal-icon">${config.icon}</div>
-        <div class="pedal-name">${pedalId}</div>
-      </div>
-      <div class="pedal-label">${isEnabled ? typeName : '—'}</div>
-    `;
-
-    // Evento de clique
-    pedalEl.addEventListener('click', () => openModal(pedalId, moduleData, config));
-    pedalEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') openModal(pedalId, moduleData, config);
-    });
-
-    container.appendChild(pedalEl);
-
-    // Fio de conexão entre pedais (exceto após o último)
-    if (index < CHAIN_ORDER.length - 1) {
-      const wire = document.createElement('div');
-      wire.className = `chain-wire ${isEnabled ? 'active-wire' : ''}`;
-      if (isEnabled) wire.style.setProperty('--wire-color', config.color);
-      container.appendChild(wire);
-    }
-  });
-}
-
-function renderEmptyChain() {
-  const container = document.getElementById('chain-wrapper');
-  container.innerHTML = '';
-
-  CHAIN_ORDER.forEach((pedalId, index) => {
-    const config = PEDAL_CONFIG[pedalId];
-
-    const pedalEl = document.createElement('div');
-    pedalEl.className = 'pedal-block inactive';
-    pedalEl.style.setProperty('--pedal-color', config.color);
-    pedalEl.setAttribute('data-pedal', pedalId);
-
-    pedalEl.innerHTML = `
-      <div class="pedal-body">
-        <div class="pedal-icon">${config.icon}</div>
-        <div class="pedal-name">${pedalId}</div>
-      </div>
-      <div class="pedal-label">${config.label}</div>
-    `;
-
-    container.appendChild(pedalEl);
-
-    if (index < CHAIN_ORDER.length - 1) {
-      const wire = document.createElement('div');
-      wire.className = 'chain-wire';
-      container.appendChild(wire);
-    }
-  });
-}
-
-// ─────────────────────────────────────────────
-// MODAL DE PARÂMETROS
-// ─────────────────────────────────────────────
-
-function openModal(pedalId, moduleData, config) {
-  AppState.selectedPedal = pedalId;
-
-  const overlay = document.getElementById('modal-overlay');
-  const panel = document.getElementById('modal-panel');
-  const modalIcon = document.getElementById('modal-icon');
-  const modalName = document.getElementById('modal-name');
-  const modalType = document.getElementById('modal-type');
-  const modalStatus = document.getElementById('modal-status');
-  const modalContent = document.getElementById('modal-content');
-
-  // Header
-  modalIcon.textContent = config.icon;
-  modalIcon.style.background = `linear-gradient(135deg, ${config.color}33, ${config.color}22)`;
-  modalIcon.style.border = `1px solid ${config.color}44`;
-
-  modalName.textContent = pedalId;
-  modalName.style.color = config.color;
-
-  const typeName = moduleData?.params?.type && moduleData.params.type !== 'None'
-    ? moduleData.params.type : config.label;
-  modalType.textContent = typeName;
-
-  const isEnabled = moduleData?.enabled ?? false;
-  modalStatus.textContent = isEnabled ? 'ATIVO' : 'BYPASS';
-  modalStatus.className = `modal-status-badge ${isEnabled ? 'on' : 'off'}`;
-
-  // Parâmetros
-  modalContent.innerHTML = '';
-
-  if (!moduleData) {
-    modalContent.innerHTML = `
-      <div style="text-align:center; padding:40px 0; color:var(--text-muted); font-size:13px;">
-        Pesquise um timbre para ver<br>os parâmetros deste módulo.
-      </div>`;
-  } else {
-    const params = moduleData.params || {};
-    const paramEntries = Object.entries(params);
-
-    if (paramEntries.length === 0) {
-      modalContent.innerHTML = `<div style="color:var(--text-muted); font-size:13px;">Sem parâmetros disponíveis.</div>`;
-    } else {
-      const group = document.createElement('div');
-      group.className = 'param-group';
-
-      const label = document.createElement('div');
-      label.className = 'param-label';
-      label.textContent = 'Parâmetros';
-      group.appendChild(label);
-
-      paramEntries.forEach(([key, val]) => {
-        const item = document.createElement('div');
-        item.className = 'param-item';
-
-        if (key === 'type') {
-          // Parâmetro string (tipo de efeito)
-          item.innerHTML = `
-            <div class="param-row">
-              <span class="param-name">Tipo</span>
-            </div>
-            <div class="param-string" style="border-color: ${config.color}44; color: ${config.color};">
-              ${val}
-            </div>`;
-        } else if (key === 'mic') {
-          item.innerHTML = `
-            <div class="param-row">
-              <span class="param-name">Microfone</span>
-            </div>
-            <div class="param-string">${val}</div>`;
-        } else if (typeof val === 'number') {
-          // Parâmetro numérico com barra de progresso
-          const displayName = formatParamName(key);
-          item.innerHTML = `
-            <div class="param-row">
-              <span class="param-name">${displayName}</span>
-              <span class="param-value" style="color: ${config.color};">${val}</span>
-            </div>
-            <div class="param-bar">
-              <div class="param-fill" 
-                   style="width: ${val}%; --pedal-color: ${config.color}; background: ${config.color}; box-shadow: 0 0 6px ${config.color}80;">
-              </div>
-            </div>`;
-        }
-
-        group.appendChild(item);
-      });
-
-      modalContent.appendChild(group);
-
-      // Dica de configuração
-      const tip = document.createElement('div');
-      tip.style.cssText = `
-        margin-top: 20px; padding: 14px; background: var(--bg-card);
-        border: 1px solid var(--border); border-radius: 8px;
-        font-size: 12px; color: var(--text-muted); line-height: 1.6;`;
-      tip.innerHTML = `
-        <strong style="color: var(--text-secondary);">💡 Dica MK-300</strong><br>
-        Acesse o módulo <strong style="color: ${config.color}; font-family: monospace;">${pedalId}</strong>
-        na pedaleira e ajuste os parâmetros conforme indicado acima.
-        Use os botões ◄ ► para navegar entre os parâmetros.`;
-      modalContent.appendChild(tip);
-    }
-  }
-
-  // Abre o modal
-  overlay.classList.add('visible');
-  panel.classList.add('visible');
-  document.body.style.overflow = 'hidden';
-}
-
-function closeModal() {
-  const overlay = document.getElementById('modal-overlay');
-  const panel = document.getElementById('modal-panel');
-  overlay.classList.remove('visible');
-  panel.classList.remove('visible');
-  document.body.style.overflow = '';
-  AppState.selectedPedal = null;
-}
-
-function formatParamName(key) {
-  const names = {
-    gain: 'Gain', tone: 'Tom', level: 'Level', bass: 'Baixo',
-    middle: 'Middle', treble: 'Agudo', presence: 'Presence',
-    low_mid: 'Low-Mid', high_mid: 'High-Mid', rate: 'Rate',
-    depth: 'Depth', feedback: 'Feedback', mix: 'Mix', time: 'Tempo',
-    decay: 'Decay', pre_delay: 'Pre-Delay', threshold: 'Threshold',
-    sensitivity: 'Sensibilidade', freq: 'Frequência', volume: 'Volume',
+  const DEFAULT_ENABLED = {
+    WAH: false, FX: true, GATE: true, DS: true, AMP: true,
+    CAB: true, EQ: false, MOD: false, DLY: true, REV: true, VOL: true,
   };
-  return names[key] || capitalize(key.replace(/_/g, ' '));
-}
 
-// ─────────────────────────────────────────────
-// SONG INFO CARD
-// ─────────────────────────────────────────────
+  const els = {};
+  let moduleState = {};
+  let baselineState = {};
+  let selectedId = 'AMP';
+  let busy = false;
 
-function renderSongInfo(data) {
-  const card = document.getElementById('song-info-card');
-  const info = data.song_info || {};
-  const toneInfo = data.tone_info || {};
+  function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-  document.getElementById('song-avatar').textContent =
-    info.song ? '🎸' : '🎵';
-  document.getElementById('song-name').textContent =
-    info.song || info.artist || 'Timbre Personalizado';
-  document.getElementById('song-artist').textContent =
-    [info.artist, info.era, info.guitar].filter(Boolean).join(' · ');
-  document.getElementById('song-desc').textContent =
-    info.description || toneInfo.character || '';
-
-  const tagsEl = document.getElementById('song-tags');
-  tagsEl.innerHTML = '';
-  const tags = [toneInfo.style, ...(toneInfo.key_effects || [])].filter(Boolean).slice(0, 3);
-  tags.forEach(tag => {
-    const el = document.createElement('span');
-    el.className = 'tag';
-    el.textContent = tag;
-    tagsEl.appendChild(el);
-  });
-
-  card.classList.add('visible');
-}
-
-// ─────────────────────────────────────────────
-// BUSCA PRINCIPAL DE TIMBRE
-// ─────────────────────────────────────────────
-
-async function searchTone(query) {
-  setLoading(true, 'Analisando timbre com IA...');
-  document.getElementById('search-btn').disabled = true;
-
-  try {
-    const resp = await fetch('/api/search-tone', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
-    });
-
-    const result = await resp.json();
-
-    if (!resp.ok || !result.success) {
-      throw new Error(result.error || 'Erro desconhecido');
-    }
-
-    AppState.currentToneData = result.data;
-    renderChain(result.data);
-    renderSongInfo(result.data);
-    showToast('Timbre analisado com sucesso!', 'success');
-
-  } catch (err) {
-    showToast(err.message, 'error');
-    console.error('[ToneSearch]', err);
-  } finally {
-    setLoading(false);
-    document.getElementById('search-btn').disabled = false;
+  function clampNum(v) {
+    const n = Number(v);
+    if (Number.isNaN(n)) return 50;
+    return Math.max(0, Math.min(100, Math.round(n)));
   }
-}
 
-// ─────────────────────────────────────────────
-// BUSCA DE MIDI
-// ─────────────────────────────────────────────
-
-async function searchMidi(query) {
-  const midiStatus = document.getElementById('midi-status');
-  const midiResults = document.getElementById('midi-results');
-
-  midiStatus.textContent = 'Buscando...';
-  midiResults.innerHTML = `
-    <div class="midi-empty">
-      <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
-      Buscando arquivos MIDI...
-    </div>`;
-
-  try {
-    const resp = await fetch('/api/search-midi', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query })
-    });
-
-    const result = await resp.json();
-
-    if (!resp.ok || !result.success) {
-      throw new Error(result.error || 'Erro na busca MIDI');
-    }
-
-    renderMidiResults(result.data);
-
-  } catch (err) {
-    midiResults.innerHTML = `
-      <div class="midi-empty">
-        <div style="font-size: 24px; margin-bottom: 8px;">⚠️</div>
-        ${err.message}
-      </div>`;
-    midiStatus.textContent = 'Erro';
+  function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, (c) => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+    }[c]));
   }
-}
 
-function renderMidiResults(data) {
-  const midiStatus = document.getElementById('midi-status');
-  const midiResults = document.getElementById('midi-results');
-  const midiLinks = document.getElementById('midi-external-links');
+  function buildDefaultState() {
+    const state = {};
+    MODULES.forEach((m) => {
+      const params = {};
+      m.params.forEach((p) => { params[p.key] = 50; });
+      if (m.id === 'AMP') {
+        Object.assign(params, { gain: 50, bass: 55, middle: 50, treble: 58, presence: 50 });
+      }
+      state[m.id] = { enabled: DEFAULT_ENABLED[m.id], params };
+    });
+    return state;
+  }
 
-  midiStatus.textContent = `${data.count} resultado(s)`;
+  function moduleByIndex(index) { return MODULES[index]; }
+  function indexOfModule(id) { return MODULES.findIndex((m) => m.id === id); }
 
-  if (data.results.length === 0) {
-    midiResults.innerHTML = `
-      <div class="midi-empty">
-        <div style="font-size: 24px; margin-bottom: 8px;">🔍</div>
-        Nenhum arquivo encontrado automaticamente.<br>
-        Use os links abaixo para buscar manualmente.
-      </div>`;
-  } else {
-    midiResults.innerHTML = '';
-    data.results.forEach(item => {
-      const el = document.createElement('div');
-      el.className = 'midi-result-item';
-      el.innerHTML = `
-        <div class="midi-result-icon">🎹</div>
-        <div class="midi-result-info">
-          <div class="midi-result-title" title="${item.title}">${item.title}</div>
-          <div class="midi-result-source">📡 ${item.source}</div>
+  /* ─── Toasts ─── */
+
+  function toast(message, type) {
+    const el = document.createElement('div');
+    el.className = 'toast' + (type === 'error' ? ' toast-error' : '');
+    el.textContent = message;
+    els.toastContainer.appendChild(el);
+    setTimeout(() => {
+      el.classList.add('toast-out');
+      setTimeout(() => el.remove(), 200);
+    }, 3500);
+  }
+
+  /* ─── Status pill ─── */
+
+  function setStatus(state) {
+    const labels = { idle: 'PRONTO', busy: 'ANALISANDO...', error: 'ERRO' };
+    els.statusPill.dataset.state = state;
+    els.statusPill.textContent = labels[state] || 'PRONTO';
+  }
+
+  function setBusy(next) {
+    busy = next;
+    els.searchBtn.disabled = busy;
+    els.searchBtn.querySelector('.btn-label').textContent = busy ? 'Analisando...' : 'Analisar timbre';
+    setStatus(busy ? 'busy' : 'idle');
+  }
+
+  /* ─── Chain rendering ─── */
+
+  function updateChainSummary() {
+    const total = MODULES.length;
+    const on = MODULES.filter((m) => moduleState[m.id].enabled).length;
+    els.chainSummary.textContent = `${on} ativos · ${total - on} bypass`;
+  }
+
+  function renderChain() {
+    els.chainTrack.innerHTML = '';
+    MODULES.forEach((m) => {
+      const st = moduleState[m.id];
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'module-card' + (m.id === selectedId ? ' is-selected' : '');
+      card.dataset.enabled = String(st.enabled);
+      card.setAttribute('role', 'listitem');
+      card.setAttribute('aria-pressed', m.id === selectedId ? 'true' : 'false');
+      card.setAttribute('aria-label', `${m.name} - ${st.enabled ? 'ativo' : 'desligado'}`);
+      card.innerHTML = `
+        <div class="module-card-top">
+          <span class="module-dot" aria-hidden="true"></span>
+          <span class="module-state">${st.enabled ? 'ON' : 'OFF'}</span>
         </div>
-        <a href="${item.download_url}" target="_blank" rel="noopener" class="midi-download-btn">
-          ⬇ Download
-        </a>`;
-      midiResults.appendChild(el);
+        <div class="module-name">${m.name}</div>
+        <div class="module-sub">${m.sub}</div>
+      `;
+      card.addEventListener('click', () => selectModule(m.id));
+      els.chainTrack.appendChild(card);
     });
+    updateChainSummary();
   }
 
-  // Links externos para busca manual
-  if (data.search_urls) {
-    midiLinks.innerHTML = `
-      <span style="font-size:11px; color:var(--text-muted)">Buscar manualmente:</span>
-      ${Object.entries(data.search_urls).map(([name, url]) =>
-        `<a href="${url}" target="_blank" rel="noopener" class="midi-ext-link">
-          🔗 ${capitalize(name)}
-        </a>`
-      ).join('')}`;
-  }
-}
-
-// ─────────────────────────────────────────────
-// FORMULÁRIO E EVENTOS
-// ─────────────────────────────────────────────
-
-function handleSearch() {
-  const input = document.getElementById('search-input');
-  const query = input.value.trim();
-
-  if (!query) {
-    showToast('Digite uma música, artista ou estilo de timbre.', 'error');
-    input.focus();
-    return;
+  function selectModule(id) {
+    selectedId = id;
+    renderChain();
+    renderModulePanel();
+    const idx = indexOfModule(id);
+    const card = els.chainTrack.children[idx];
+    if (card) {
+      card.focus({ preventScroll: true });
+      card.scrollIntoView({ inline: 'center', behavior: 'smooth', block: 'nearest' });
+    }
   }
 
-  // Roda ambas as buscas
-  searchTone(query);
-  searchMidi(query);
-}
+  /* ─── Module detail panel ─── */
 
-// ─────────────────────────────────────────────
-// CONFIGURAÇÃO DE CHAVE API (modal inline)
-// ─────────────────────────────────────────────
+  function renderModulePanel() {
+    const m = MODULES.find((x) => x.id === selectedId);
+    const st = moduleState[selectedId];
+    const panel = els.modulePanel;
+    panel.dataset.enabled = String(st.enabled);
 
-function showApiKeyModal() {
-  const key = prompt(
-    'Cole sua chave de API aqui.\n\n' +
-    'Para uso permanente, edite o arquivo .env na pasta do projeto.\n\n' +
-    'Chave temporária (válida até fechar o servidor):'
-  );
-  if (key) {
-    fetch('/api/set-key', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key })
-    }).then(r => r.json()).then(d => {
-      if (d.success) showToast('Chave configurada com sucesso!', 'success');
-      else showToast('Erro ao configurar chave.', 'error');
+    const paramsHtml = m.params.map((p) => `
+      <div class="param-row">
+        <div class="param-label-row">
+          <span class="param-name">${p.label}</span>
+          <span class="param-value mono" data-key="${p.key}">${st.params[p.key]}</span>
+        </div>
+        <input type="range" min="0" max="100" value="${st.params[p.key]}" data-key="${p.key}" aria-label="${p.label}">
+      </div>
+    `).join('');
+
+    panel.innerHTML = `
+      <div class="module-panel-header">
+        <div>
+          <div class="module-panel-title" data-enabled="${st.enabled}">${m.name}</div>
+          <div class="module-panel-sub">${m.sub}</div>
+        </div>
+        <div class="module-panel-actions">
+          <span class="status-pill status-pill-sm" data-state="${st.enabled ? 'idle' : 'error'}">${st.enabled ? 'ATIVO' : 'DESLIGADO'}</span>
+          <button type="button" class="btn btn-outline" id="toggle-module-btn">${st.enabled ? 'DESLIGAR' : 'LIGAR'}</button>
+        </div>
+      </div>
+      <div id="param-list">${paramsHtml}</div>
+      <div class="param-actions">
+        <button type="button" class="btn-outline" id="copy-module-btn">Copiar ajustes do m&oacute;dulo</button>
+        <button type="button" class="btn-outline" id="restore-module-btn">Restaurar</button>
+      </div>
+      <p class="module-hint">${m.hint}</p>
+    `;
+
+    panel.querySelector('#toggle-module-btn').addEventListener('click', () => {
+      st.enabled = !st.enabled;
+      renderChain();
+      renderModulePanel();
     });
-  }
-}
 
-// ─────────────────────────────────────────────
-// DOMContentLoaded — Bootstrap
-// ─────────────────────────────────────────────
-
-document.addEventListener('DOMContentLoaded', () => {
-
-  // Carrega configurações
-  loadConfig();
-
-  // Renderiza cadeia vazia inicial
-  renderEmptyChain();
-
-  // Formulário de busca
-  const form = document.getElementById('search-form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    handleSearch();
-  });
-
-  // Botão de busca
-  document.getElementById('search-btn').addEventListener('click', handleSearch);
-
-  // Enter no input
-  document.getElementById('search-input').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') handleSearch();
-  });
-
-  // Exemplos de busca
-  document.querySelectorAll('.search-example').forEach(el => {
-    el.addEventListener('click', () => {
-      document.getElementById('search-input').value = el.dataset.query;
-      handleSearch();
+    panel.querySelectorAll('input[type="range"]').forEach((input) => {
+      input.addEventListener('input', () => {
+        const key = input.dataset.key;
+        st.params[key] = clampNum(input.value);
+        panel.querySelector(`.param-value[data-key="${key}"]`).textContent = st.params[key];
+      });
     });
-  });
 
-  // Fechar modal
-  document.getElementById('modal-overlay').addEventListener('click', closeModal);
-  document.getElementById('modal-close').addEventListener('click', closeModal);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closeModal();
-  });
+    panel.querySelector('#copy-module-btn').addEventListener('click', copyModuleSettings);
+    panel.querySelector('#restore-module-btn').addEventListener('click', restoreModule);
+  }
 
-  // Botão de API Key
-  const apiKeyBtn = document.getElementById('api-key-btn');
-  if (apiKeyBtn) apiKeyBtn.addEventListener('click', showApiKeyModal);
-});
+  function copyModuleSettings() {
+    const payload = JSON.stringify({ module: selectedId, ...moduleState[selectedId] }, null, 2);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(payload)
+        .then(() => toast(`Ajustes de ${selectedId} copiados.`))
+        .catch(() => toast('Não foi possível copiar os ajustes.', 'error'));
+    } else {
+      toast('Copiar não é suportado neste navegador.', 'error');
+    }
+  }
+
+  function restoreModule() {
+    moduleState[selectedId] = clone(baselineState[selectedId]);
+    renderChain();
+    renderModulePanel();
+    toast(`${selectedId} restaurado.`);
+  }
+
+  /* ─── Song / tone info ─── */
+
+  function renderSongInfo(data) {
+    if (!data) {
+      els.songInfo.hidden = true;
+      els.songInfo.innerHTML = '';
+      return;
+    }
+    const song = data.song_info || {};
+    const tone = data.tone_info || {};
+    const metaBits = [song.era, song.guitar].filter(Boolean).map(escapeHtml).join(' · ');
+    const tags = [tone.character, tone.style, ...(tone.key_effects || [])]
+      .filter(Boolean)
+      .map((t) => `<span class="tag">${escapeHtml(t)}</span>`)
+      .join('');
+
+    els.songInfo.innerHTML = `
+      <div>
+        <h3>${escapeHtml(song.artist || '')}${song.song ? ' — ' + escapeHtml(song.song) : ''}</h3>
+        <p>${escapeHtml(song.description || '')}${metaBits ? ' · ' + metaBits : ''}</p>
+      </div>
+      <div class="tone-tags">${tags}</div>
+    `;
+    els.songInfo.hidden = false;
+  }
+
+  /* ─── MIDI panel ─── */
+
+  function renderMidiResults(data) {
+    if (!data || !data.results || data.results.length === 0) {
+      els.midiResults.innerHTML = '<p class="midi-empty">Nenhum arquivo MIDI encontrado para essa busca.</p>';
+      els.midiStatus.textContent = 'VAZIO';
+      els.midiStatus.dataset.state = 'idle';
+      return;
+    }
+    els.midiStatus.textContent = `${data.results.length} ENCONTRADOS`;
+    els.midiStatus.dataset.state = 'idle';
+    const items = data.results.map((r) => `
+      <li class="midi-item">
+        <div>
+          <div class="midi-item-title">${escapeHtml(r.title || 'Arquivo MIDI')}</div>
+          <div class="midi-item-source mono">${escapeHtml(r.source || '')}</div>
+        </div>
+        <a href="${escapeHtml(r.download_url || r.page_url || '#')}" target="_blank" rel="noopener noreferrer">ABRIR</a>
+      </li>
+    `).join('');
+    els.midiResults.innerHTML = `<ul class="midi-list">${items}</ul>`;
+  }
+
+  function resetMidiPanel() {
+    els.midiResults.innerHTML = '<p class="midi-empty">Pesquise um timbre para listar arquivos MIDI relacionados.</p>';
+    els.midiStatus.textContent = 'AGUARDANDO';
+    els.midiStatus.dataset.state = 'idle';
+  }
+
+  /* ─── Aplicar resultado da análise ─── */
+
+  function applyToneData(data) {
+    const next = buildDefaultState();
+    MODULES.forEach((m) => {
+      const incoming = data && data[m.id];
+      if (!incoming) return;
+      const params = { ...next[m.id].params };
+      Object.keys(params).forEach((key) => {
+        if (incoming.params && incoming.params[key] !== undefined) {
+          params[key] = clampNum(incoming.params[key]);
+        }
+      });
+      next[m.id] = { enabled: !!incoming.enabled, params };
+    });
+    moduleState = next;
+    baselineState = clone(next);
+    if (!moduleState[selectedId]) selectedId = 'AMP';
+    renderSongInfo(data);
+    renderChain();
+    renderModulePanel();
+  }
+
+  /* ─── Busca / análise ─── */
+
+  async function runAnalysis(query) {
+    const q = (query || '').trim();
+    if (!q || busy) return;
+
+    setBusy(true);
+    const [toneRes, midiRes] = await Promise.allSettled([
+      fetch('/api/search-tone', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q }),
+      }),
+      fetch('/api/search-midi', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: q }),
+      }),
+    ]);
+
+    if (toneRes.status === 'fulfilled') {
+      try {
+        const payload = await toneRes.value.json();
+        if (toneRes.value.ok && payload.success) {
+          applyToneData(payload.data);
+          setStatus('idle');
+          const song = (payload.data && payload.data.song_info) || {};
+          const label = [song.artist, song.song].filter(Boolean).join(' — ');
+          toast(label ? `Timbre analisado: ${label}` : 'Timbre analisado.');
+        } else {
+          setStatus('error');
+          toast(payload.error || 'Erro ao analisar timbre.', 'error');
+        }
+      } catch (e) {
+        setStatus('error');
+        toast('Resposta inválida ao analisar timbre.', 'error');
+      }
+    } else {
+      setStatus('error');
+      toast('Falha de conexão ao analisar timbre.', 'error');
+    }
+
+    if (midiRes.status === 'fulfilled') {
+      try {
+        const payload = await midiRes.value.json();
+        renderMidiResults(midiRes.value.ok && payload.success ? payload.data : null);
+      } catch (e) {
+        renderMidiResults(null);
+      }
+    } else {
+      renderMidiResults(null);
+    }
+
+    setBusy(false);
+  }
+
+  /* ─── Config (provedor / modelo) ─── */
+
+  function loadConfig() {
+    fetch('/api/config')
+      .then((r) => r.json())
+      .then((cfg) => {
+        if (cfg && cfg.provider) {
+          els.providerInfo.textContent = `${cfg.provider.toUpperCase()} · ${cfg.model}`;
+        }
+      })
+      .catch(() => {});
+  }
+
+  /* ─── Reset geral ─── */
+
+  function resetAll() {
+    moduleState = buildDefaultState();
+    baselineState = clone(moduleState);
+    selectedId = 'AMP';
+    els.searchInput.value = '';
+    renderSongInfo(null);
+    resetMidiPanel();
+    renderChain();
+    renderModulePanel();
+    setStatus('idle');
+    toast('Configuração restaurada.');
+  }
+
+  /* ─── Navegação por teclado (← / →) ─── */
+
+  function handleKeydown(e) {
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    const idx = indexOfModule(selectedId);
+    const nextIdx = e.key === 'ArrowRight' ? Math.min(idx + 1, MODULES.length - 1) : Math.max(idx - 1, 0);
+    if (nextIdx !== idx) {
+      e.preventDefault();
+      selectModule(moduleByIndex(nextIdx).id);
+    }
+  }
+
+  /* ─── Init ─── */
+
+  function bindEvents() {
+    els.searchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      runAnalysis(els.searchInput.value);
+    });
+
+    document.querySelectorAll('.chip').forEach((chip) => {
+      chip.addEventListener('click', () => {
+        els.searchInput.value = chip.dataset.query;
+        runAnalysis(chip.dataset.query);
+      });
+    });
+
+    els.resetBtn.addEventListener('click', resetAll);
+    document.addEventListener('keydown', handleKeydown);
+  }
+
+  function cacheEls() {
+    els.searchForm = document.getElementById('search-form');
+    els.searchInput = document.getElementById('search-input');
+    els.searchBtn = document.getElementById('search-btn');
+    els.statusPill = document.getElementById('status-pill');
+    els.resetBtn = document.getElementById('reset-btn');
+    els.providerInfo = document.getElementById('provider-info');
+    els.chainTrack = document.getElementById('chain-track');
+    els.chainSummary = document.getElementById('chain-summary');
+    els.modulePanel = document.getElementById('module-panel');
+    els.midiResults = document.getElementById('midi-results');
+    els.midiStatus = document.getElementById('midi-status');
+    els.songInfo = document.getElementById('song-info');
+    els.toastContainer = document.getElementById('toast-container');
+  }
+
+  function init() {
+    cacheEls();
+    moduleState = buildDefaultState();
+    baselineState = clone(moduleState);
+    renderChain();
+    renderModulePanel();
+    bindEvents();
+    loadConfig();
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
