@@ -16,6 +16,8 @@ IDÊNTICO ao template, portanto sempre um valor válido que a pedaleira aceita.
 """
 
 import os
+import re
+import difflib
 
 TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "assets", "base_preset.dzh")
 
@@ -68,13 +70,51 @@ def _clamp_u16(value) -> int:
     return max(0, min(65535, v))
 
 
-def build_dzh(tone_data: dict, preset_name: str, amp_types: list, cab_types: list, ds_types: list) -> bytes:
+def _normalize_name(s: str) -> str:
+    """Remove espaços/hífens/underscores e baixa a caixa, para comparar nomes
+    de modelo de forma tolerante a pequenas diferenças de formatação."""
+    return re.sub(r"[\s_\-]+", "", (s or "").strip().lower())
+
+
+def _match_type(type_name: str, names: list):
+    """Encontra o nome real (e seu índice) mais próximo de type_name numa
+    lista de modelos reais. Provedores sem enforcement de schema (Groq/OpenAI)
+    não são obrigados a copiar o nome EXATAMENTE como está na lista — sem essa
+    tolerância, uma diferença mínima de maiúscula/espaço/hífen fazia o tipo
+    nunca ser gravado no .dzh (ficava sempre com o valor do preset-modelo).
+    Retorna (nome_real_encontrado, índice) ou (None, None) se nada bater."""
+    if not type_name or not names:
+        return None, None
+    if type_name in names:
+        return type_name, names.index(type_name)
+
+    norm_target = _normalize_name(type_name)
+    norm_map = {}
+    for n in names:
+        norm_map.setdefault(_normalize_name(n), n)
+    if norm_target in norm_map:
+        matched = norm_map[norm_target]
+        return matched, names.index(matched)
+
+    close = difflib.get_close_matches(type_name, names, n=1, cutoff=0.72)
+    if close:
+        matched = close[0]
+        return matched, names.index(matched)
+
+    return None, None
+
+
+def build_dzh(tone_data: dict, preset_name: str, amp_types: list, cab_types: list, ds_types: list):
     """Recebe o JSON retornado pela análise de timbre (mesmo formato usado no
-    front-end: uma chave por módulo com {enabled, params}) e devolve os bytes
-    de um .dzh pronto para download, baseado no preset-template real."""
+    front-end: uma chave por módulo com {enabled, params}) e devolve
+    (bytes_do_dzh, lista_de_avisos), baseado no preset-template real. Avisos
+    são gerados quando um "type" não bate com nenhum modelo real conhecido
+    (mantém o valor do template) ou quando bateu por aproximação."""
 
     with open(TEMPLATE_PATH, "rb") as f:
         buf = bytearray(f.read())
+
+    warnings = []
 
     # ── Nome do preset ──────────────────────────────────────────────
     name_bytes = _sanitize_name(preset_name)
@@ -92,11 +132,13 @@ def build_dzh(tone_data: dict, preset_name: str, amp_types: list, cab_types: lis
         info = tone_data.get(mod) or {}
         params = info.get("params") or {}
         type_name = params.get("type")
-        if type_name and names and type_name in names:
-            buf[TYPE_OFFSET + MODULE_CANONICAL_ID[mod]] = names.index(type_name) & 0xFF
-        # se o nome não bater com a lista real (ex.: provedor sem enum, tipo
-        # inventado), mantemos o índice original do template em vez de
-        # gravar um índice aleatório/errado.
+        matched, idx = _match_type(type_name, names)
+        if matched is not None:
+            buf[TYPE_OFFSET + MODULE_CANONICAL_ID[mod]] = idx & 0xFF
+            if matched != type_name:
+                warnings.append(f'{mod}: "{type_name}" interpretado como "{matched}" (correspondência aproximada).')
+        elif type_name:
+            warnings.append(f'{mod}: modelo "{type_name}" não reconhecido — mantido o modelo que já estava no preset-modelo.')
 
     # ── Parâmetros numéricos confirmados (AMP, DS, CAB, VOL) ─────────
     for mod, param_map in PARAM_OFFSETS.items():
@@ -108,7 +150,7 @@ def build_dzh(tone_data: dict, preset_name: str, amp_types: list, cab_types: lis
                 buf[offset] = v & 0xFF
                 buf[offset + 1] = (v >> 8) & 0xFF
 
-    return bytes(buf)
+    return bytes(buf), warnings
 
 
 def safe_filename(preset_name: str) -> str:

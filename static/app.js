@@ -8,27 +8,28 @@
 (function () {
   'use strict';
 
+  // WAH/FX/GATE/MOD: cada modelo real tem seu PRÓPRIO conjunto de parâmetros
+  // (ex.: "X-Wah" usa Value/Gain/Level, "Wah-Wah" usa Speed/Q/Mix/Width/Level/
+  // Sync/Sync Bpm). Por isso esses 4 módulos não têm uma lista fixa de
+  // parâmetros aqui — os rótulos e a quantidade de sliders são resolvidos em
+  // tempo real a partir do catálogo buscado em /api/effects (ver
+  // paramLabelsFor() e renderModulePanel()), usando slots genéricos
+  // param1..paramN armazenados no estado. DYNAMIC_MAX_PARAMS abaixo precisa
+  // bater com MAX_PARAMS do app.py.
+  const DYNAMIC_MAX_PARAMS = { WAH: 7, FX: 8, GATE: 8, MOD: 6 };
+  const PARAM_RANGE_OVERRIDES = { 'Sync': [0, 1], 'Sync Bpm': [40, 240], 'Semi': [-24, 24] };
+  let effectsCatalog = { wah: [], fx: [], gate: [], mod: [] };
+
   const MODULES = [
     { id: 'WAH', name: 'WAH', sub: 'Wah / Expressão',
-      hint: 'O bloco WAH simula pedal de expressão. Ajuste Sensitivity conforme a dinâmica da palhetada.',
-      params: [
-        { key: 'sensitivity', label: 'Sensitivity' },
-        { key: 'freq', label: 'Freq' },
-        { key: 'level', label: 'Level' },
-      ] },
+      hint: 'O bloco WAH tem vários modelos reais (X-Wah, Wah-Wah, Sense-Wah...), cada um com seus próprios controles.',
+      dynamic: true, params: [] },
     { id: 'FX', name: 'FX', sub: 'Compressor / FX',
-      hint: 'O bloco FX cobre compressão e modulação de entrada. Use com moderação antes da distorção.',
-      params: [
-        { key: 'rate', label: 'Rate' },
-        { key: 'depth', label: 'Depth' },
-        { key: 'level', label: 'Level' },
-      ] },
-    { id: 'GATE', name: 'GATE', sub: 'Noise Gate',
-      hint: 'O bloco GATE corta ruído entre notas. Suba o Threshold aos poucos até o ruído sumir.',
-      params: [
-        { key: 'threshold', label: 'Threshold' },
-        { key: 'decay', label: 'Decay' },
-      ] },
+      hint: 'O bloco FX cobre compressores, boosts, pitch e outros efeitos de entrada — os controles mudam conforme o modelo.',
+      dynamic: true, params: [] },
+    { id: 'GATE', name: 'GATE', sub: 'Noise Gate / Compressor',
+      hint: 'O bloco GATE tem modelos de noise gate e também de compressor — os controles mudam conforme o modelo.',
+      dynamic: true, params: [] },
     { id: 'DS', name: 'DS', sub: 'Drive / Distortion',
       hint: 'O bloco DS define a saturação. Ajuste Tone para equilibrar brilho e corpo.',
       params: [
@@ -61,12 +62,8 @@
         { key: 'level', label: 'Level' },
       ] },
     { id: 'MOD', name: 'MOD', sub: 'Modulação',
-      hint: 'O bloco MOD adiciona movimento ao sinal. Rates mais baixos soam mais sutis.',
-      params: [
-        { key: 'rate', label: 'Rate' },
-        { key: 'depth', label: 'Depth' },
-        { key: 'level', label: 'Level' },
-      ] },
+      hint: 'O bloco MOD tem vários modelos reais (Chorus, Flanger, Tremolo, Phaser...), cada um com seus próprios controles.',
+      dynamic: true, params: [] },
     { id: 'DLY', name: 'DLY', sub: 'Delay',
       hint: 'O bloco DLY repete o sinal no tempo. Sincronize Feedback e Mix com a música.',
       params: [
@@ -105,10 +102,12 @@
 
   function clone(obj) { return JSON.parse(JSON.stringify(obj)); }
 
-  function clampNum(v) {
+  function clampNum(v, min, max) {
+    const lo = min === undefined ? 0 : min;
+    const hi = max === undefined ? 100 : max;
     const n = Number(v);
-    if (Number.isNaN(n)) return 50;
-    return Math.max(0, Math.min(100, Math.round(n)));
+    if (Number.isNaN(n)) return Math.round((lo + hi) / 2);
+    return Math.max(lo, Math.min(hi, Math.round(n)));
   }
 
   function escapeHtml(str) {
@@ -229,9 +228,14 @@
     const state = {};
     MODULES.forEach((m) => {
       const params = {};
-      m.params.forEach((p) => { params[p.key] = 50; });
-      if (m.id === 'AMP') {
-        Object.assign(params, { gain: 50, bass: 55, middle: 50, treble: 58, presence: 50 });
+      if (m.dynamic) {
+        const n = DYNAMIC_MAX_PARAMS[m.id] || 0;
+        for (let i = 1; i <= n; i++) params[`param${i}`] = 0;
+      } else {
+        m.params.forEach((p) => { params[p.key] = 50; });
+        if (m.id === 'AMP') {
+          Object.assign(params, { gain: 50, bass: 55, middle: 50, treble: 58, presence: 50 });
+        }
       }
       state[m.id] = { enabled: DEFAULT_ENABLED[m.id], params, type: null };
     });
@@ -316,21 +320,62 @@
 
   /* ─── Module detail panel ─── */
 
+  function normalizeModelName(s) {
+    return String(s || '').trim().toLowerCase().replace(/[\s_-]+/g, '');
+  }
+
+  function findDynamicModel(moduleId, typeName) {
+    const list = effectsCatalog[moduleId.toLowerCase()];
+    if (!list || !typeName) return null;
+    const target = normalizeModelName(typeName);
+    return list.find((mo) => normalizeModelName(mo.name) === target) || null;
+  }
+
   function renderModulePanel() {
     const m = MODULES.find((x) => x.id === selectedId);
     const st = moduleState[selectedId];
     const panel = els.modulePanel;
     panel.dataset.enabled = String(st.enabled);
 
-    const paramsHtml = m.params.map((p) => `
-      <div class="param-row">
-        <div class="param-label-row">
-          <span class="param-name">${p.label}</span>
-          <span class="param-value mono" data-key="${p.key}">${st.params[p.key]}</span>
+    let paramsHtml = '';
+    let unconfirmedNote = '';
+
+    if (m.dynamic) {
+      const model = findDynamicModel(m.id, st.type);
+      if (model && model.params && model.params.length) {
+        paramsHtml = model.params.map((label, i) => {
+          const key = `param${i + 1}`;
+          const range = PARAM_RANGE_OVERRIDES[label] || [0, 100];
+          const value = st.params[key] !== undefined ? st.params[key] : range[0];
+          return `
+            <div class="param-row">
+              <div class="param-label-row">
+                <span class="param-name">${escapeHtml(label)}</span>
+                <span class="param-value mono" data-key="${key}">${value}</span>
+              </div>
+              <input type="range" min="${range[0]}" max="${range[1]}" value="${value}" data-key="${key}" aria-label="${escapeHtml(label)}">
+            </div>
+          `;
+        }).join('');
+        if (model.unconfirmed) {
+          unconfirmedNote = `<p class="module-hint module-hint-warn">⚠ Parâmetros deste modelo (${escapeHtml(model.name)}) ainda não foram confirmados oficialmente — valores aproximados por padrão com modelos parecidos.</p>`;
+        }
+      } else if (st.type) {
+        paramsHtml = `<p class="midi-empty">Modelo "${escapeHtml(st.type)}" não reconhecido no catálogo — pesquise novamente ou ajuste direto na pedaleira.</p>`;
+      } else {
+        paramsHtml = `<p class="midi-empty">Pesquise um timbre para ver os parâmetros reais deste módulo.</p>`;
+      }
+    } else {
+      paramsHtml = m.params.map((p) => `
+        <div class="param-row">
+          <div class="param-label-row">
+            <span class="param-name">${p.label}</span>
+            <span class="param-value mono" data-key="${p.key}">${st.params[p.key]}</span>
+          </div>
+          <input type="range" min="0" max="100" value="${st.params[p.key]}" data-key="${p.key}" aria-label="${p.label}">
         </div>
-        <input type="range" min="0" max="100" value="${st.params[p.key]}" data-key="${p.key}" aria-label="${p.label}">
-      </div>
-    `).join('');
+      `).join('');
+    }
 
     const modelRowHtml = st.type ? `
       <div class="module-model-row">
@@ -356,6 +401,7 @@
         <button type="button" class="btn-outline" id="copy-module-btn">Copiar ajustes do m&oacute;dulo</button>
         <button type="button" class="btn-outline" id="restore-module-btn">Restaurar</button>
       </div>
+      ${unconfirmedNote}
       <p class="module-hint">${m.hint}</p>
     `;
 
@@ -368,7 +414,9 @@
     panel.querySelectorAll('input[type="range"]').forEach((input) => {
       input.addEventListener('input', () => {
         const key = input.dataset.key;
-        st.params[key] = clampNum(input.value);
+        const min = Number(input.min) || 0;
+        const max = Number(input.max) || 100;
+        st.params[key] = clampNum(input.value, min, max);
         panel.querySelector(`.param-value[data-key="${key}"]`).textContent = st.params[key];
       });
     });
@@ -458,6 +506,7 @@
       const disposition = resp.headers.get('Content-Disposition') || '';
       const match = /filename="?([^";]+)"?/.exec(disposition);
       const filename = match ? match[1] : `${presetName.replace(/\s+/g, '_')}.dzh`;
+      const warningsHeader = resp.headers.get('X-Dzh-Warnings');
 
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -469,6 +518,13 @@
       URL.revokeObjectURL(url);
 
       toast(`Preset .dzh baixado: ${filename} (beta — confira AMP/CAB/DS/VOL na pedaleira)`);
+
+      if (warningsHeader) {
+        try {
+          const warnings = JSON.parse(warningsHeader);
+          warnings.forEach((w) => toast(w, 'error'));
+        } catch (e) { /* ignore malformed header */ }
+      }
     } catch (err) {
       toast(`Não foi possível gerar o .dzh: ${err.message}`, 'error');
     } finally {
@@ -513,13 +569,28 @@
     MODULES.forEach((m) => {
       const incoming = data && data[m.id];
       if (!incoming) return;
+      const type = incoming.params && incoming.params.type ? String(incoming.params.type) : null;
       const params = { ...next[m.id].params };
+
+      // Para módulos dinâmicos (WAH/FX/GATE/MOD), cada slot paramN tem uma
+      // faixa diferente dependendo do rótulo real do modelo selecionado
+      // (ex.: "Sync" é 0/1, "Sync Bpm" é 40-240) — resolve isso antes de
+      // aplicar o clamp, senão um valor válido como Sync Bpm=120 seria
+      // cortado para 100 pelo clamp genérico 0-100.
+      const model = m.dynamic ? findDynamicModel(m.id, type) : null;
+
       Object.keys(params).forEach((key) => {
         if (incoming.params && incoming.params[key] !== undefined) {
-          params[key] = clampNum(incoming.params[key]);
+          let min = 0, max = 100;
+          if (model && model.params) {
+            const idx = Number(key.replace('param', '')) - 1;
+            const label = model.params[idx];
+            const range = label && PARAM_RANGE_OVERRIDES[label];
+            if (range) { min = range[0]; max = range[1]; }
+          }
+          params[key] = clampNum(incoming.params[key], min, max);
         }
       });
-      const type = incoming.params && incoming.params.type ? String(incoming.params.type) : null;
       next[m.id] = { enabled: !!incoming.enabled, params, type };
     });
     moduleState = next;
@@ -619,6 +690,22 @@
       .then((cfg) => {
         if (cfg && cfg.provider) {
           els.providerInfo.textContent = `${cfg.provider.toUpperCase()} · ${cfg.model}`;
+        }
+      })
+      .catch(() => {});
+  }
+
+  function loadEffectsCatalog() {
+    fetch('/api/effects')
+      .then((r) => r.json())
+      .then((data) => {
+        if (data && data.wah) {
+          effectsCatalog = { wah: data.wah, fx: data.fx, gate: data.gate, mod: data.mod };
+          // re-renderiza caso o módulo selecionado seja dinâmico e já tenha
+          // um tipo aplicado antes do catálogo terminar de carregar
+          if (MODULES.find((m) => m.id === selectedId && m.dynamic)) {
+            renderModulePanel();
+          }
         }
       })
       .catch(() => {});
@@ -739,6 +826,7 @@
     renderPresetsList();
     bindEvents();
     loadConfig();
+    loadEffectsCatalog();
   }
 
   document.addEventListener('DOMContentLoaded', init);

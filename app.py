@@ -63,14 +63,53 @@ def get_model_name():
 
 # ─────────────────────────────────────────────
 # LISTAS REAIS DE MODELOS (extraídas do manual oficial da M-VAVE MK-300)
-# Usadas tanto no prompt da IA (texto) quanto no schema do Gemini (enum) e no
-# export de .dzh (para converter o nome do modelo de volta em índice binário).
+# Carregadas de data/mk300_models.json — a "memória" persistente do projeto —
+# em vez de ficarem hardcoded aqui. Usadas no prompt da IA (texto), no schema
+# do Gemini (enum) e no export de .dzh (para converter o nome do modelo de
+# volta em índice binário). Ver também presets/ para os .dzh reais usados
+# para descobrir e confirmar o formato binário.
 # ─────────────────────────────────────────────
 
-AMP_TYPES = ["J120_CL", "J900_OD", "J900_DS", "J900_HV", "M_BLUES", "HORIZON", "M-VAVE_DS", "ROOM40", "FD1_BR", "JOY_OD", "M-VAVE_TS3", "MT100 LEAD", "RAT_CL", "RAT_CR", "RAT_DS", "MES_RED", "FD_CH1", "FD_CH1_HOT", "MT80 CL", "M_SUPER OD", "J800_CL_1960", "J800_CL_AMP", "J800_OD", "J800_DS", "JOHNS_CH1", "DARK_OD", "DARK_OD2", "DARK_DS", "VXO_CL", "VXO_OD", "VXO_OD2", "VXO_OD3", "OR_CL", "OR_CRUNCH", "HIGIAN", "HIGIAN_RED", "COOL_CL", "JVMcrunch", "JV410_BOOST", "AXE", "MES_CH1", "M-VAVE_DS3", "M-VAVE_DS4", "M-VAVE LEAD", "LANY_CH1", "LANY_CH1_BR", "LANY_CH2_OD", "LANY_CH3_DS", "ROLANS_CL", "ROLANS_DS", "ROLANS_TDS", "BOOSS_METEL", "J900_CH1", "J900_CH2", "JVM_OD_FG", "JVM_DS_FG", "RADAL_CL_FG", "RADAL_DS", "RADAL_TDS", "RADAL_HDS", "DUMBLE_FG", "JAZZ_OD", "M-VAVE_TS1", "M-VAVE_TS2", "EHV5150_CH1", "EHV5150_CH2", "EHV5150_DS", "EHV5150_MT", "XC_CL", "XC_OD", "XC_DS", "XC_HV", "J2000_CL_FG", "J2000_CR_FG", "J2000_TR_FG", "J2000_DS_FG", "J900_CL_57", "J900_DS_57", "MAR_METEL", "MAR_HV", "WS_JZCL_57", "OR_CL_ECM", "OR_CRUNCH", "OR_SWEET", "BOG_LEAD", "BOG_LEAD2", "BOG_LEAD3", "BOG_SOLO", "MATTER_DS", "UK_DS", "JHS_DS", "JHS_TDS", "M-VAVE_HOT", "M-VAVE_RED", "M-VAVE_MT", "M-VAVE_BST", "MES_CH2_57", "MES_CH2_AMP", "MES_CH3_57", "MES_CH3_AMP", "AgDb750_BS", "ApSVT_BS", "DgM900_BS", "FenRum_BS", "GkF550_BS", "HkeHd50_BS", "MarkLm_BS", "OrgAd_BS", "PjBuddy_BS", "RolDb_BS", "Mb400C1_BS", "Mb400C2_BS", "DgXu_BS", "ApSp_BS", "Mar50_BS", "Mark500_BS", "PjbCub_BS", "Tc21Vt_BS", "WatMod_BS", "GKL800_BS"]
-CAB_TYPES = ["AC-SeVin", "JVM_1960_57", "JVM_G12_ECM", "DELUXE REV", "BOG_57", "FD120_7B", "HESS_212DM", "HESS_212VTY", "HIW412SWF", "MAR1960_412", "MESA_412_57", "MESA_412_ECM", "WANGS112_ECM", "WANGS212_ECM", "V30_MC834", "V30_MD421", "VOX_AC30", "FD_TW1971", "FD_TW1980", "FD_TW1988", "FD_TW2000", "M160_Center", "MD421_Center", "Chug_L", "Chug_R", "EV_MIX_B", "G12-EVH", "G12-EVH_CT", "G12-EVH_i5", "G12-EVH_m160", "Marshall_Box", "BGN412V30", "MESA_LS", "MESA_CS", "MESA_HS", "Recto_112", "FRMAN112", "OR_112", "HIFI_OK", "Ranll_412", "OR_V30_212", "OR_G75_212", "RE_SUPER_412", "EGNL01_412", "EGNL02_412", "EGNL03_412", "MeOSick-II", "MeOSick-III", "MesaOSick-I", "SoldHor", "SoldSC412", "AC-SeTV20", "Pey5150", "MRSH03", "VA5153", "AC-EmG212", "AC-Se210", "CeleAt", "AC-SeGol", "AC-CateEx", "AC-CateFw", "DieV30", "EAGLProV30s", "Sperimental", "Peavey115", "Peavey112", "VxAc15", "FimanVt", "FenDeluX", "FenProJ", "Alton212", "OgP412", "OgV30", "HaBtonV", "MarMfour", "Elctrovoice", "J120Rolnd", "MessOS", "Mar60AV", "WS212_57", "Agula410", "AmpgSVT410", "AmpgSVT810", "AshB115", "Bareface110", "Bstert 115", "DavEendD410", "DgD210C", "DgDG212N", "FdBman410", "FdBmanSf210", "GKRB410A", "GKRB410B", "Hark410", "MbSubway210", "OgOBC212", "Pey115", "RanRB100", "SR115", "Tace412"]
-DS_TYPES = ["BLUES_OD", "TS8", "DS1", "DS2", "M-VAVE_OD", "M-VAVE_DS", "M-VAVE_TS1", "M-VAVE_TS2", "SUPA_1", "SUPA_2", "RAT", "RAT_BT", "JHS_1", "JHS_2", "MT_1", "MT_2", "TDS", "XC_DS", "QC_DS", "HIGAIN", "M-BOOSTER", "TS-9", "BIG-DR", "CL_BOOST", "BD", "M90S", "M2000", "DS800", "DS900", "MAR-DS", "BOG_DS", "SONDO", "MID-BOST", "RED_DS", "MODEN_DS", "SuperOD", "BLUES_DR", "Black-BOX", "BIG-MUFF", "PLX"]
-TYPE_ENUMS = {"AMP": AMP_TYPES, "CAB": CAB_TYPES, "DS": DS_TYPES}
+def _load_mk300_data():
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data", "mk300_models.json")
+    with open(path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+_MK300_DATA = _load_mk300_data()
+
+AMP_TYPES = _MK300_DATA["amp_guitar"] + _MK300_DATA["amp_bass"]
+CAB_TYPES = _MK300_DATA["cab"]
+DS_TYPES = [item["name"] for item in _MK300_DATA["ds"]]
+
+# WAH/FX/GATE/MOD: cada modelo real tem seu PRÓPRIO conjunto de parâmetros
+# (ex.: "X-Wah" usa Value/Gain/Level, mas "Wah-Wah" usa Speed/Q/Mix/Width/
+# Level/Sync/Sync Bpm). Para caber num schema fixo, usamos slots posicionais
+# genéricos param1..paramN (N = maior nº de parâmetros entre os modelos da
+# categoria) — o significado de cada slot depende do modelo escolhido, e essa
+# tradução (slot -> nome real) é o que os dicionários *_MODELS abaixo guardam,
+# usada tanto no prompt da IA quanto no front-end para mostrar o rótulo certo.
+WAH_MODELS = _MK300_DATA["wah"]
+FX_MODELS = _MK300_DATA["fx"]
+GATE_MODELS = _MK300_DATA["gate"]
+MOD_MODELS = _MK300_DATA["mod"]
+
+WAH_TYPES = [m["name"] for m in WAH_MODELS]
+FX_TYPES = [m["name"] for m in FX_MODELS]
+GATE_TYPES = [m["name"] for m in GATE_MODELS]
+MOD_TYPES = [m["name"] for m in MOD_MODELS]
+
+MAX_PARAMS = {
+    "WAH": max(len(m["params"]) if m.get("params") else 0 for m in WAH_MODELS),
+    "FX": max(len(m["params"]) if m.get("params") else 0 for m in FX_MODELS),
+    "GATE": max(len(m["params"]) if m.get("params") else 0 for m in GATE_MODELS),
+    "MOD": max(len(m["params"]) if m.get("params") else 0 for m in MOD_MODELS),
+}
+
+TYPE_ENUMS = {
+    "AMP": AMP_TYPES, "CAB": CAB_TYPES, "DS": DS_TYPES,
+    "WAH": WAH_TYPES, "FX": FX_TYPES, "GATE": GATE_TYPES, "MOD": MOD_TYPES,
+}
 
 
 SYSTEM_PROMPT = """Você é um especialista em timbres de guitarra e pedaleiras de efeitos. 
@@ -88,14 +127,14 @@ INSTRUÇÕES OBRIGATÓRIAS:
 6. Inclua um campo "song_info" no nível raiz com informações sobre a música/artista.
 
 PARÂMETROS ESPERADOS POR MÓDULO:
-- WAH: { type: string, sensitivity: int, freq: int, level: int }
-- FX: { type: string, rate: int, depth: int, level: int }  
-- GATE: { threshold: int, decay: int }
+- WAH: { type: string, param1..param7: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
+- FX: { type: string, param1..param8: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
+- GATE: { type: string, param1..param8: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
 - DS: { type: string, gain: int, tone: int, level: int }
 - AMP: { type: string, gain: int, bass: int, middle: int, treble: int, level: int, presence: int }
 - CAB: { type: string, level: int }  (mic já está embutido no nome do gabinete)
 - EQ: { bass: int, low_mid: int, mid: int, high_mid: int, treble: int, level: int }
-- MOD: { type: string, rate: int, depth: int, level: int }
+- MOD: { type: string, param1..param6: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
 - DLY: { type: string, time: int, feedback: int, mix: int }
 - REV: { type: string, decay: int, pre_delay: int, mix: int }
 - VOL: { volume: int }
@@ -104,11 +143,44 @@ TIPOS VÁLIDOS (extraídos do manual oficial da M-VAVE MK-300 — use SOMENTE es
 pois são os nomes REAIS gravados na pedaleira física; qualquer outro nome não existirá no
 equipamento do usuário):
 
-- WAH: "Auto Wah", "Volume", "None"
-  (a MK-300 tem um único modo de wah manual/auto-wah e um modo volume; não possui um modelo
-  de marca licenciado com nome próprio nos documentos oficiais)
-- FX: "Compressor", "Chorus", "Phaser", "Flanger", "Tremolo", "None"
-- GATE: (sem "type"; apenas threshold/decay)
+- WAH (6 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
+  7 slots param1..param7, preenchendo somente os que o modelo usa e os demais com 0):
+    * "X-Wah": param1=Value, param2=Gain, param3=Level
+    * "Funk-Wah": param1=Value, param2=Gain, param3=Level
+    * "Slide-Wah": param1=Value, param2=Gain, param3=Level
+    * "Cry-Wah": param1=Value, param2=Gain, param3=Level
+    * "Wah-Wah": param1=Speed, param2=Q, param3=Mix, param4=Width, param5=Level, param6=Sync (0=desligado, 1=ligado), param7=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Sense-Wah": param1=Sense, param2=Attack, param3=Q, param4=fPeak, param5=Mix, param6=Width, param7=Level
+
+- FX (14 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
+  8 slots param1..param8, preenchendo somente os que o modelo usa e os demais com 0):
+    * "Lofi": param1=Bit, param2=Level, param3=Filter
+    * "Pitch shifter": param1=Semi (faixa -24 a 24 semitons)
+    * "Boost": param1=Gain, param2=Level
+    * "A Boost": param1=Gain, param2=Bass, param3=Mid, param4=Treble, param5=Level
+    * "E Boost": param1=Gain, param2=Bass, param3=Mid, param4=Treble, param5=Level
+    * "B Boost": param1=Gain, param2=Bass, param3=Mid, param4=Treble, param5=Level
+    * "Boost ED": param1=Gain, param2=Grit, param3=Level
+    * "Compress": param1=Sustain, param2=Attack, param3=Wet Level, param4=Blend
+    * "Compress Pro": param1=Ratio, param2=Gain, param3=Knee, param4=Thd, param5=Attack, param6=Wet Level, param7=Blend
+    * "F Compress": param1=Ratio, param2=Gain, param3=Knee, param4=Thd, param5=Attack, param6=Tone, param7=Wet Level, param8=Blend
+    * "Pitch": param1=High Pitch, param2=Low Pitch, param3=High Level, param4=Low Level, param5=Dry Level
+    * "Octave": param1=High Level, param2=Low Level, param3=Dry Level
+    * "Ring": param1=Freq, param2=Mix
+    * "Whammy": SEM PARÂMETROS CONFIRMADOS — envie todos os slots como 0 (modelo novo, use com cautela)
+
+- GATE (9 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
+  8 slots param1..param8, preenchendo somente os que o modelo usa e os demais com 0):
+    * "AI Gate": param1=Gate, param2=Bias
+    * "AI Ms Gate Gen2": param1=Gate, param2=Bias
+    * "AI Ms Gate": param1=Gate, param2=Bias
+    * "Soft Gate": param1=Thd
+    * "Hard Gate": param1=Thd
+    * "Pro Gate": param1=Att, param2=Rel, param3=Thd, param4=Kw, param5=Ratio
+    * "Compress": param1=Sustain, param2=Attack, param3=Wet Level, param4=Blend
+    * "Compress Pro": param1=Ratio, param2=Gain, param3=Knee, param4=Thd, param5=Attack, param6=Wet Level, param7=Blend
+    * "F Compress": param1=Ratio, param2=Gain, param3=Knee, param4=Thd, param5=Attack, param6=Tone, param7=Wet Level, param8=Blend
+
 - DS (Drive/Distortion, 40 modelos reais, use EXATAMENTE o nome do modelo escolhido como "type"
   e o campo "dsType" abaixo é apenas informativo — o "type" retornado deve ser um destes nomes):
     * Overdrive: "BLUES_OD", "TS8", "M-VAVE_OD", "M-VAVE_TS1", "M-VAVE_TS2", "JHS_1", "TS-9", "BD", "SuperOD", "BLUES_DR", "Black-BOX"
@@ -150,15 +222,27 @@ equipamento do usuário):
     "Bareface110", "Bstert 115", "DavEendD410", "DgD210C", "DgDG212N", "FdBman410", "FdBmanSf210",
     "GKRB410A", "GKRB410B", "Hark410", "MbSubway210", "OgOBC212", "Pey115", "RanRB100", "SR115",
     "Tace412"
-- MOD: "Chorus", "Phaser", "Flanger", "Vibrato", "Tremolo", "None"
+- MOD (9 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
+  6 slots param1..param6, preenchendo somente os que o modelo usa e os demais com 0):
+    * "Chorus": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Tri Chorus": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Flanger": param1=Speed, param2=Depth, param3=Fb, param4=Mix, param5=Sync (0=desligado, 1=ligado), param6=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Tri Flanger": param1=Speed, param2=Depth, param3=Fb, param4=Mix, param5=Sync (0=desligado, 1=ligado), param6=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Tremolo": param1=Speed, param2=Depth, param3=Level, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Tri Tremolo": param1=Speed, param2=Depth, param3=Level, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Opto Tremolo": param1=Speed, param2=Depth, param3=Level, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Phaser": param1=Speed, param2=MidCut, param3=Reso, param4=Fb, param5=Sync (0=desligado, 1=ligado), param6=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Vibrato": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1) [ESTIMATIVA NÃO CONFIRMADA]
 - DLY: "Analog", "Digital", "Tape", "Mod", "None"
 - REV: "Hall", "Room", "Plate", "Spring", "Chamber", "None"
 
-OBSERVAÇÃO IMPORTANTE: apenas os módulos DS, AMP e CAB possuem uma lista oficial e completa de
-nomes de modelo documentada pelo fabricante (extraída do manual). Para WAH, FX, MOD, DLY, REV,
-GATE, EQ e VOL a documentação disponível não lista nomes de modelo/marca individuais, então os
-"type" acima são categorias genéricas de efeito (não invente nomes de marcas de pedais reais
-como "Cry Baby", "Big Muff" etc. para esses módulos — eles NÃO existem na MK-300).
+OBSERVAÇÃO IMPORTANTE: DS, AMP, CAB, WAH, FX, GATE e MOD agora têm listas oficiais e completas
+de modelos reais (extraídas da documentação do fabricante) — use EXATAMENTE os nomes e o mapa de
+parâmetros mostrados acima para cada um, copiando o nome do modelo caractere por caractere (sem
+mudar maiúsculas/minúsculas, espaços ou hífens). Apenas DLY, REV e EQ ainda não têm uma lista de
+modelos nomeados confirmada pelo fabricante — para esses, use somente as categorias genéricas
+abaixo (não invente nomes de marcas de pedais reais como "Cry Baby", "Big Muff" etc. — eles NÃO
+existem na MK-300).
 
 EXEMPLO DE SAÍDA (Resumido):
 {
@@ -350,29 +434,32 @@ Retorne SOMENTE o JSON conforme especificado no sistema."""
         }
         
         # Add pedals to schema with specific parameters to prevent 'too many states' schema error
+        # WAH/FX/GATE/MOD usam slots posicionais genéricos (param1..paramN) porque
+        # cada modelo real tem seu próprio conjunto de parâmetros — ver MAX_PARAMS
+        # e TIPOS VÁLIDOS no SYSTEM_PROMPT para o mapa slot -> nome real por modelo.
         pedal_params = {
-            "WAH": ["type", "sensitivity", "freq", "level"],
-            "FX": ["type", "rate", "depth", "level"],
-            "GATE": ["threshold", "decay"],
+            "WAH": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["WAH"] + 1)],
+            "FX": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["FX"] + 1)],
+            "GATE": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["GATE"] + 1)],
             "DS": ["type", "gain", "tone", "level"],
             "AMP": ["type", "gain", "bass", "middle", "treble", "level", "presence"],
             "CAB": ["type", "level"],
             "EQ": ["bass", "low_mid", "mid", "high_mid", "treble", "level"],
-            "MOD": ["type", "rate", "depth", "level"],
+            "MOD": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["MOD"] + 1)],
             "DLY": ["type", "time", "feedback", "mix"],
             "REV": ["type", "decay", "pre_delay", "mix"],
             "VOL": ["volume"]
         }
-        
+
         param_types = {
             "type": "STRING",
-            "sensitivity": "INTEGER", "freq": "INTEGER", "level": "INTEGER",
-            "rate": "INTEGER", "depth": "INTEGER", "threshold": "INTEGER", "decay": "INTEGER",
             "gain": "INTEGER", "tone": "INTEGER", "bass": "INTEGER", "middle": "INTEGER",
             "treble": "INTEGER", "presence": "INTEGER", "low_mid": "INTEGER", "mid": "INTEGER",
-            "high_mid": "INTEGER", "time": "INTEGER", "feedback": "INTEGER", "pre_delay": "INTEGER",
-            "mix": "INTEGER", "volume": "INTEGER"
+            "high_mid": "INTEGER", "level": "INTEGER", "time": "INTEGER", "feedback": "INTEGER",
+            "pre_delay": "INTEGER", "mix": "INTEGER", "decay": "INTEGER", "volume": "INTEGER",
         }
+        for i in range(1, max(MAX_PARAMS.values()) + 1):
+            param_types[f"param{i}"] = "INTEGER"
 
         # Listas REAIS de modelos definidas no topo do arquivo (AMP_TYPES/CAB_TYPES/DS_TYPES/TYPE_ENUMS)
 
@@ -525,19 +612,42 @@ def export_dzh():
         return jsonify({"error": "Dados do preset ausentes ou inválidos."}), 400
 
     try:
-        dzh_bytes = build_dzh(tone_data, preset_name, AMP_TYPES, CAB_TYPES, DS_TYPES)
+        dzh_bytes, warnings = build_dzh(tone_data, preset_name, AMP_TYPES, CAB_TYPES, DS_TYPES)
     except FileNotFoundError:
         return jsonify({"error": "Arquivo-modelo do preset (assets/base_preset.dzh) não encontrado no servidor."}), 500
     except Exception as e:
         return jsonify({"error": f"Erro ao gerar o arquivo .dzh: {str(e)}"}), 500
 
     filename = f"{safe_filename(preset_name)}.dzh"
-    return send_file(
+    response = send_file(
         io.BytesIO(dzh_bytes),
         mimetype="application/octet-stream",
         as_attachment=True,
         download_name=filename,
     )
+    if warnings:
+        # Cabeçalho custom (não são dados sensíveis) para o front-end avisar o
+        # usuário sem precisar de uma segunda requisição — ex.: quando o
+        # provedor de IA (Groq/OpenAI, sem enum) devolveu um nome de modelo
+        # que não bateu exatamente com a lista real do fabricante.
+        response.headers["X-Dzh-Warnings"] = json.dumps(warnings, ensure_ascii=True)
+    return response
+
+
+@app.route("/api/effects", methods=["GET"])
+def api_get_effects():
+    """Catálogo de efeitos reais da MK-300, para o front-end mostrar o nome
+    certo de cada parâmetro conforme o modelo selecionado (WAH/FX/GATE/MOD
+    têm parâmetros diferentes por modelo — ver data/mk300_models.json)."""
+    response = jsonify({
+        "wah": WAH_MODELS,
+        "fx": FX_MODELS,
+        "gate": GATE_MODELS,
+        "mod": MOD_MODELS,
+        "max_params": MAX_PARAMS,
+    })
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    return response
 
 
 @app.route("/api/config", methods=["GET"])

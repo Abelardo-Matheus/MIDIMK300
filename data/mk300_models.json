@@ -1,0 +1,810 @@
+{
+  "source": "Extraído do manual oficial M-VAVE MK-300 (MK300_en_3.pdf, seção de efeitos) e confirmado por diff binário em presets .dzh reais.",
+  "amp_guitar": [
+    "J120_CL",
+    "J900_OD",
+    "J900_DS",
+    "J900_HV",
+    "M_BLUES",
+    "HORIZON",
+    "M-VAVE_DS",
+    "ROOM40",
+    "FD1_BR",
+    "JOY_OD",
+    "M-VAVE_TS3",
+    "MT100 LEAD",
+    "RAT_CL",
+    "RAT_CR",
+    "RAT_DS",
+    "MES_RED",
+    "FD_CH1",
+    "FD_CH1_HOT",
+    "MT80 CL",
+    "M_SUPER OD",
+    "J800_CL_1960",
+    "J800_CL_AMP",
+    "J800_OD",
+    "J800_DS",
+    "JOHNS_CH1",
+    "DARK_OD",
+    "DARK_OD2",
+    "DARK_DS",
+    "VXO_CL",
+    "VXO_OD",
+    "VXO_OD2",
+    "VXO_OD3",
+    "OR_CL",
+    "OR_CRUNCH",
+    "HIGIAN",
+    "HIGIAN_RED",
+    "COOL_CL",
+    "JVMcrunch",
+    "JV410_BOOST",
+    "AXE",
+    "MES_CH1",
+    "M-VAVE_DS3",
+    "M-VAVE_DS4",
+    "M-VAVE LEAD",
+    "LANY_CH1",
+    "LANY_CH1_BR",
+    "LANY_CH2_OD",
+    "LANY_CH3_DS",
+    "ROLANS_CL",
+    "ROLANS_DS",
+    "ROLANS_TDS",
+    "BOOSS_METEL",
+    "J900_CH1",
+    "J900_CH2",
+    "JVM_OD_FG",
+    "JVM_DS_FG",
+    "RADAL_CL_FG",
+    "RADAL_DS",
+    "RADAL_TDS",
+    "RADAL_HDS",
+    "DUMBLE_FG",
+    "JAZZ_OD",
+    "M-VAVE_TS1",
+    "M-VAVE_TS2",
+    "EHV5150_CH1",
+    "EHV5150_CH2",
+    "EHV5150_DS",
+    "EHV5150_MT",
+    "XC_CL",
+    "XC_OD",
+    "XC_DS",
+    "XC_HV",
+    "J2000_CL_FG",
+    "J2000_CR_FG",
+    "J2000_TR_FG",
+    "J2000_DS_FG",
+    "J900_CL_57",
+    "J900_DS_57",
+    "MAR_METEL",
+    "MAR_HV",
+    "WS_JZCL_57",
+    "OR_CL_ECM",
+    "OR_CRUNCH",
+    "OR_SWEET",
+    "BOG_LEAD",
+    "BOG_LEAD2",
+    "BOG_LEAD3",
+    "BOG_SOLO",
+    "MATTER_DS",
+    "UK_DS",
+    "JHS_DS",
+    "JHS_TDS",
+    "M-VAVE_HOT",
+    "M-VAVE_RED",
+    "M-VAVE_MT",
+    "M-VAVE_BST",
+    "MES_CH2_57",
+    "MES_CH2_AMP",
+    "MES_CH3_57",
+    "MES_CH3_AMP"
+  ],
+  "amp_bass": [
+    "AgDb750_BS",
+    "ApSVT_BS",
+    "DgM900_BS",
+    "FenRum_BS",
+    "GkF550_BS",
+    "HkeHd50_BS",
+    "MarkLm_BS",
+    "OrgAd_BS",
+    "PjBuddy_BS",
+    "RolDb_BS",
+    "Mb400C1_BS",
+    "Mb400C2_BS",
+    "DgXu_BS",
+    "ApSp_BS",
+    "Mar50_BS",
+    "Mark500_BS",
+    "PjbCub_BS",
+    "Tc21Vt_BS",
+    "WatMod_BS",
+    "GKL800_BS"
+  ],
+  "cab": [
+    "AC-SeVin",
+    "JVM_1960_57",
+    "JVM_G12_ECM",
+    "DELUXE REV",
+    "BOG_57",
+    "FD120_7B",
+    "HESS_212DM",
+    "HESS_212VTY",
+    "HIW412SWF",
+    "MAR1960_412",
+    "MESA_412_57",
+    "MESA_412_ECM",
+    "WANGS112_ECM",
+    "WANGS212_ECM",
+    "V30_MC834",
+    "V30_MD421",
+    "VOX_AC30",
+    "FD_TW1971",
+    "FD_TW1980",
+    "FD_TW1988",
+    "FD_TW2000",
+    "M160_Center",
+    "MD421_Center",
+    "Chug_L",
+    "Chug_R",
+    "EV_MIX_B",
+    "G12-EVH",
+    "G12-EVH_CT",
+    "G12-EVH_i5",
+    "G12-EVH_m160",
+    "Marshall_Box",
+    "BGN412V30",
+    "MESA_LS",
+    "MESA_CS",
+    "MESA_HS",
+    "Recto_112",
+    "FRMAN112",
+    "OR_112",
+    "HIFI_OK",
+    "Ranll_412",
+    "OR_V30_212",
+    "OR_G75_212",
+    "RE_SUPER_412",
+    "EGNL01_412",
+    "EGNL02_412",
+    "EGNL03_412",
+    "MeOSick-II",
+    "MeOSick-III",
+    "MesaOSick-I",
+    "SoldHor",
+    "SoldSC412",
+    "AC-SeTV20",
+    "Pey5150",
+    "MRSH03",
+    "VA5153",
+    "AC-EmG212",
+    "AC-Se210",
+    "CeleAt",
+    "AC-SeGol",
+    "AC-CateEx",
+    "AC-CateFw",
+    "DieV30",
+    "EAGLProV30s",
+    "Sperimental",
+    "Peavey115",
+    "Peavey112",
+    "VxAc15",
+    "FimanVt",
+    "FenDeluX",
+    "FenProJ",
+    "Alton212",
+    "OgP412",
+    "OgV30",
+    "HaBtonV",
+    "MarMfour",
+    "Elctrovoice",
+    "J120Rolnd",
+    "MessOS",
+    "Mar60AV",
+    "WS212_57",
+    "Agula410",
+    "AmpgSVT410",
+    "AmpgSVT810",
+    "AshB115",
+    "Bareface110",
+    "Bstert 115",
+    "DavEendD410",
+    "DgD210C",
+    "DgDG212N",
+    "FdBman410",
+    "FdBmanSf210",
+    "GKRB410A",
+    "GKRB410B",
+    "Hark410",
+    "MbSubway210",
+    "OgOBC212",
+    "Pey115",
+    "RanRB100",
+    "SR115",
+    "Tace412"
+  ],
+  "ds": [
+    {
+      "name": "BLUES_OD",
+      "type": "Overdrive"
+    },
+    {
+      "name": "TS8",
+      "type": "Overdrive"
+    },
+    {
+      "name": "DS1",
+      "type": "Distortion"
+    },
+    {
+      "name": "DS2",
+      "type": "Distortion"
+    },
+    {
+      "name": "M-VAVE_OD",
+      "type": "Overdrive"
+    },
+    {
+      "name": "M-VAVE_DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "M-VAVE_TS1",
+      "type": "Overdrive"
+    },
+    {
+      "name": "M-VAVE_TS2",
+      "type": "Overdrive"
+    },
+    {
+      "name": "SUPA_1",
+      "type": "Boost"
+    },
+    {
+      "name": "SUPA_2",
+      "type": "Boost"
+    },
+    {
+      "name": "RAT",
+      "type": "Distortion"
+    },
+    {
+      "name": "RAT_BT",
+      "type": "Distortion"
+    },
+    {
+      "name": "JHS_1",
+      "type": "Overdrive"
+    },
+    {
+      "name": "JHS_2",
+      "type": "Distortion"
+    },
+    {
+      "name": "MT_1",
+      "type": "Distortion"
+    },
+    {
+      "name": "MT_2",
+      "type": "Distortion"
+    },
+    {
+      "name": "TDS",
+      "type": "Distortion"
+    },
+    {
+      "name": "XC_DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "QC_DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "HIGAIN",
+      "type": "Distortion"
+    },
+    {
+      "name": "M-BOOSTER",
+      "type": "Boost"
+    },
+    {
+      "name": "TS-9",
+      "type": "Overdrive"
+    },
+    {
+      "name": "BIG-DR",
+      "type": "Distortion"
+    },
+    {
+      "name": "CL_BOOST",
+      "type": "Boost"
+    },
+    {
+      "name": "BD",
+      "type": "Overdrive"
+    },
+    {
+      "name": "M90S",
+      "type": "Distortion"
+    },
+    {
+      "name": "M2000",
+      "type": "Distortion"
+    },
+    {
+      "name": "DS800",
+      "type": "Distortion"
+    },
+    {
+      "name": "DS900",
+      "type": "Distortion"
+    },
+    {
+      "name": "MAR-DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "BOG_DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "SONDO",
+      "type": "Distortion"
+    },
+    {
+      "name": "MID-BOST",
+      "type": "Boost"
+    },
+    {
+      "name": "RED_DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "MODEN_DS",
+      "type": "Distortion"
+    },
+    {
+      "name": "SuperOD",
+      "type": "Overdrive"
+    },
+    {
+      "name": "BLUES_DR",
+      "type": "Overdrive"
+    },
+    {
+      "name": "Black-BOX",
+      "type": "Overdrive"
+    },
+    {
+      "name": "BIG-MUFF",
+      "type": "Boost"
+    },
+    {
+      "name": "PLX",
+      "type": "Distortion"
+    }
+  ],
+  "wah": [
+    {
+      "name": "X-Wah",
+      "params": [
+        "Value",
+        "Gain",
+        "Level"
+      ]
+    },
+    {
+      "name": "Funk-Wah",
+      "params": [
+        "Value",
+        "Gain",
+        "Level"
+      ]
+    },
+    {
+      "name": "Slide-Wah",
+      "params": [
+        "Value",
+        "Gain",
+        "Level"
+      ]
+    },
+    {
+      "name": "Cry-Wah",
+      "params": [
+        "Value",
+        "Gain",
+        "Level"
+      ]
+    },
+    {
+      "name": "Wah-Wah",
+      "params": [
+        "Speed",
+        "Q",
+        "Mix",
+        "Width",
+        "Level",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Sense-Wah",
+      "params": [
+        "Sense",
+        "Attack",
+        "Q",
+        "fPeak",
+        "Mix",
+        "Width",
+        "Level"
+      ]
+    }
+  ],
+  "fx": [
+    {
+      "name": "Lofi",
+      "params": [
+        "Bit",
+        "Level",
+        "Filter"
+      ]
+    },
+    {
+      "name": "Pitch shifter",
+      "params": [
+        "Semi"
+      ]
+    },
+    {
+      "name": "Boost",
+      "params": [
+        "Gain",
+        "Level"
+      ]
+    },
+    {
+      "name": "A Boost",
+      "params": [
+        "Gain",
+        "Bass",
+        "Mid",
+        "Treble",
+        "Level"
+      ]
+    },
+    {
+      "name": "E Boost",
+      "params": [
+        "Gain",
+        "Bass",
+        "Mid",
+        "Treble",
+        "Level"
+      ]
+    },
+    {
+      "name": "B Boost",
+      "params": [
+        "Gain",
+        "Bass",
+        "Mid",
+        "Treble",
+        "Level"
+      ]
+    },
+    {
+      "name": "Boost ED",
+      "params": [
+        "Gain",
+        "Grit",
+        "Level"
+      ]
+    },
+    {
+      "name": "Compress",
+      "params": [
+        "Sustain",
+        "Attack",
+        "Wet Level",
+        "Blend"
+      ]
+    },
+    {
+      "name": "Compress Pro",
+      "params": [
+        "Ratio",
+        "Gain",
+        "Knee",
+        "Thd",
+        "Attack",
+        "Wet Level",
+        "Blend"
+      ]
+    },
+    {
+      "name": "F Compress",
+      "params": [
+        "Ratio",
+        "Gain",
+        "Knee",
+        "Thd",
+        "Attack",
+        "Tone",
+        "Wet Level",
+        "Blend"
+      ]
+    },
+    {
+      "name": "Pitch",
+      "params": [
+        "High Pitch",
+        "Low Pitch",
+        "High Level",
+        "Low Level",
+        "Dry Level"
+      ]
+    },
+    {
+      "name": "Octave",
+      "params": [
+        "High Level",
+        "Low Level",
+        "Dry Level"
+      ]
+    },
+    {
+      "name": "Ring",
+      "params": [
+        "Freq",
+        "Mix"
+      ]
+    },
+    {
+      "name": "Whammy",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Adicionado no firmware V71 (2026-04-24); parâmetros não documentados nas fontes encontradas."
+    }
+  ],
+  "gate": [
+    {
+      "name": "AI Gate",
+      "params": [
+        "Gate",
+        "Bias"
+      ]
+    },
+    {
+      "name": "AI Ms Gate Gen2",
+      "params": [
+        "Gate",
+        "Bias"
+      ]
+    },
+    {
+      "name": "AI Ms Gate",
+      "params": [
+        "Gate",
+        "Bias"
+      ]
+    },
+    {
+      "name": "Soft Gate",
+      "params": [
+        "Thd"
+      ]
+    },
+    {
+      "name": "Hard Gate",
+      "params": [
+        "Thd"
+      ]
+    },
+    {
+      "name": "Pro Gate",
+      "params": [
+        "Att",
+        "Rel",
+        "Thd",
+        "Kw",
+        "Ratio"
+      ]
+    },
+    {
+      "name": "Compress",
+      "params": [
+        "Sustain",
+        "Attack",
+        "Wet Level",
+        "Blend"
+      ]
+    },
+    {
+      "name": "Compress Pro",
+      "params": [
+        "Ratio",
+        "Gain",
+        "Knee",
+        "Thd",
+        "Attack",
+        "Wet Level",
+        "Blend"
+      ]
+    },
+    {
+      "name": "F Compress",
+      "params": [
+        "Ratio",
+        "Gain",
+        "Knee",
+        "Thd",
+        "Attack",
+        "Tone",
+        "Wet Level",
+        "Blend"
+      ]
+    }
+  ],
+  "mod": [
+    {
+      "name": "Chorus",
+      "params": [
+        "Speed",
+        "Depth",
+        "Mix",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Tri Chorus",
+      "params": [
+        "Speed",
+        "Depth",
+        "Mix",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Flanger",
+      "params": [
+        "Speed",
+        "Depth",
+        "Fb",
+        "Mix",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Tri Flanger",
+      "params": [
+        "Speed",
+        "Depth",
+        "Fb",
+        "Mix",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Tremolo",
+      "params": [
+        "Speed",
+        "Depth",
+        "Level",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Tri Tremolo",
+      "params": [
+        "Speed",
+        "Depth",
+        "Level",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Opto Tremolo",
+      "params": [
+        "Speed",
+        "Depth",
+        "Level",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Phaser",
+      "params": [
+        "Speed",
+        "MidCut",
+        "Reso",
+        "Fb",
+        "Sync",
+        "Sync Bpm"
+      ]
+    },
+    {
+      "name": "Vibrato",
+      "params": [
+        "Speed",
+        "Depth",
+        "Mix",
+        "Sync",
+        "Sync Bpm"
+      ],
+      "unconfirmed": true,
+      "note": "Descrição cortada na fonte antes de listar os parâmetros; lista inferida por padrão com os modelos MOD irmãos (Chorus/Tri Chorus), não confirmada."
+    }
+  ],
+  "eq": [
+    {
+      "name": "Guitar EQ 6",
+      "bands": [
+        "100Hz",
+        "200Hz",
+        "400Hz",
+        "800Hz",
+        "1.6kHz",
+        "3.2kHz"
+      ]
+    },
+    {
+      "name": "Bass EQ 7",
+      "bands": [
+        "50Hz",
+        "120Hz",
+        "400Hz",
+        "500Hz",
+        "800Hz",
+        "4.5kHz",
+        "10kHz"
+      ]
+    },
+    {
+      "name": "Normal EQ 10",
+      "bands": [
+        "31.25Hz",
+        "62.5Hz",
+        "125Hz",
+        "250Hz",
+        "500Hz",
+        "1kHz",
+        "2kHz",
+        "4kHz",
+        "8kHz",
+        "16kHz"
+      ]
+    }
+  ],
+  "param_ranges": {
+    "Sync": [
+      0,
+      1
+    ],
+    "Sync Bpm": [
+      40,
+      240
+    ],
+    "Semi": [
+      -24,
+      24
+    ]
+  },
+  "notes": {
+    "wah_fx_gate_mod": "Modelos e parâmetros reais extraídos do documento oficial do fabricante (M-VAVE 'Effects Description', o mesmo catálogo que confirmou AMP/CAB/DS) em 2026-09. Cada modelo tem seu PRÓPRIO conjunto de parâmetros (não um genérico por módulo).",
+    "dly_rev": "Não encontrados em nenhuma fonte acessível (o documento oficial corta antes de chegar em Delay/Reverb; manuals.plus e os PDFs no Scribd que aparentam ter essa informação bloqueiam acesso automatizado). Mantidos com categorias genéricas até serem confirmados.",
+    "dzh_export_scope": "O download .dzh continua escrevendo apenas AMP/CAB/DS (modelo+parâmetros), VOL (volume) e o liga/desliga dos 11 módulos — os únicos offsets binários confirmados por diff real. WAH/FX/GATE/MOD/DLY/REV agora têm nomes e parâmetros reais no app e na IA, mas ainda não têm offset binário confirmado, então continuam sendo copiados do preset-modelo no arquivo baixado."
+  }
+}

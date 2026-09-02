@@ -677,6 +677,11 @@ input[type="range"]::-moz-range-thumb {
   color: var(--text-faint);
 }
 
+.module-hint-warn {
+  color: var(--accent);
+  margin-top: 12px;
+}
+
 .module-panel-empty {
   display: flex;
   align-items: center;
