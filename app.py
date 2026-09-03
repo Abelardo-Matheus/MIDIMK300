@@ -81,34 +81,56 @@ _MK300_DATA = _load_mk300_data()
 AMP_TYPES = _MK300_DATA["amp_guitar"] + _MK300_DATA["amp_bass"]
 CAB_TYPES = _MK300_DATA["cab"]
 DS_TYPES = [item["name"] for item in _MK300_DATA["ds"]]
+# DS: confirmado em 2026-09-03 que todos os modelos usam o MESMO layout fixo
+# de 8 knobs (Gain/Level/Bass/Middle/Treble/Reso/Pres/Bright) - ver
+# data/mk300_models.json -> "ds_params" / "ds_offsets_confirmed".
+DS_PARAMS = _MK300_DATA.get("ds_params") or ["Gain", "Level", "Bass", "Middle", "Treble", "Reso", "Pres", "Bright"]
+REV_TYPES = [m["name"] for m in _MK300_DATA.get("rev", [])]
 
-# WAH/FX/GATE/MOD: cada modelo real tem seu PRÓPRIO conjunto de parâmetros
+# WAH/FX/GATE/MOD/DLY: cada modelo real tem seu PRÓPRIO conjunto de parâmetros
 # (ex.: "X-Wah" usa Value/Gain/Level, mas "Wah-Wah" usa Speed/Q/Mix/Width/
 # Level/Sync/Sync Bpm). Para caber num schema fixo, usamos slots posicionais
 # genéricos param1..paramN (N = maior nº de parâmetros entre os modelos da
 # categoria) — o significado de cada slot depende do modelo escolhido, e essa
 # tradução (slot -> nome real) é o que os dicionários *_MODELS abaixo guardam,
 # usada tanto no prompt da IA quanto no front-end para mostrar o rótulo certo.
+# DLY entrou nessa mesma categoria em 2026-09-03: a lista antiga (Analog/
+# Digital/Tape/Mod/None) era FICTÍCIA — substituída pela lista real de 27
+# modelos lida diretamente do dropdown do M-EFCS (ver data/mk300_models.json
+# -> "dly" e presets/README.md).
 WAH_MODELS = _MK300_DATA["wah"]
 FX_MODELS = _MK300_DATA["fx"]
 GATE_MODELS = _MK300_DATA["gate"]
 MOD_MODELS = _MK300_DATA["mod"]
+DLY_MODELS = _MK300_DATA.get("dly") or []
 
 WAH_TYPES = [m["name"] for m in WAH_MODELS]
 FX_TYPES = [m["name"] for m in FX_MODELS]
 GATE_TYPES = [m["name"] for m in GATE_MODELS]
 MOD_TYPES = [m["name"] for m in MOD_MODELS]
+DLY_TYPES = [m["name"] for m in DLY_MODELS]
 
 MAX_PARAMS = {
     "WAH": max(len(m["params"]) if m.get("params") else 0 for m in WAH_MODELS),
     "FX": max(len(m["params"]) if m.get("params") else 0 for m in FX_MODELS),
     "GATE": max(len(m["params"]) if m.get("params") else 0 for m in GATE_MODELS),
     "MOD": max(len(m["params"]) if m.get("params") else 0 for m in MOD_MODELS),
+    "DLY": max((len(m["params"]) if m.get("params") else 0 for m in DLY_MODELS), default=6),
 }
 
 TYPE_ENUMS = {
     "AMP": AMP_TYPES, "CAB": CAB_TYPES, "DS": DS_TYPES,
     "WAH": WAH_TYPES, "FX": FX_TYPES, "GATE": GATE_TYPES, "MOD": MOD_TYPES,
+    "DLY": DLY_TYPES, "REV": REV_TYPES,
+}
+
+# Passado para dzh_export.build_dzh() para os módulos "posicionais" (ver
+# comentário no topo de dzh_export.py) — cada entrada é a lista de dicts
+# {"name", "params"} de data/mk300_models.json, usada tanto pra achar o
+# índice do modelo quanto pra saber o rótulo de cada slot param1..paramN.
+POSITIONAL_MODELS = {
+    "WAH": WAH_MODELS, "FX": FX_MODELS, "GATE": GATE_MODELS,
+    "MOD": MOD_MODELS, "DLY": DLY_MODELS,
 }
 
 
@@ -130,13 +152,13 @@ PARÂMETROS ESPERADOS POR MÓDULO:
 - WAH: { type: string, param1..param7: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
 - FX: { type: string, param1..param8: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
 - GATE: { type: string, param1..param8: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
-- DS: { type: string, gain: int, tone: int, level: int }
+- DS: { type: string, gain: int, level: int, bass: int, middle: int, treble: int, reso: int, pres: int, bright: int }  (os 8 knobs são os MESMOS pra qualquer modelo de DS)
 - AMP: { type: string, gain: int, bass: int, middle: int, treble: int, level: int, presence: int }
 - CAB: { type: string, level: int }  (mic já está embutido no nome do gabinete)
 - EQ: { bass: int, low_mid: int, mid: int, high_mid: int, treble: int, level: int }
 - MOD: { type: string, param1..param6: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS)
-- DLY: { type: string, time: int, feedback: int, mix: int }
-- REV: { type: string, decay: int, pre_delay: int, mix: int }
+- DLY: { type: string, param1..param6: int }  (significado de cada slot depende do modelo — ver TIPOS VÁLIDOS; param1/param2/param3 são SEMPRE Time/Fb/Mix em todos os modelos)
+- REV: { type: string, decay: int, mix: int, high_pass: int, low_pass: int, mod_depth: int }  (os 5 knobs são os MESMOS pra qualquer modelo de REV)
 - VOL: { volume: int }
 
 TIPOS VÁLIDOS (extraídos do manual oficial da M-VAVE MK-300 — use SOMENTE estes valores,
@@ -181,8 +203,9 @@ equipamento do usuário):
     * "Compress Pro": param1=Ratio, param2=Gain, param3=Knee, param4=Thd, param5=Attack, param6=Wet Level, param7=Blend
     * "F Compress": param1=Ratio, param2=Gain, param3=Knee, param4=Thd, param5=Attack, param6=Tone, param7=Wet Level, param8=Blend
 
-- DS (Drive/Distortion, 40 modelos reais, use EXATAMENTE o nome do modelo escolhido como "type"
-  e o campo "dsType" abaixo é apenas informativo — o "type" retornado deve ser um destes nomes):
+- DS (Drive/Distortion, 40 modelos reais, use EXATAMENTE o nome do modelo escolhido como "type".
+  TODO modelo de DS usa os MESMOS 8 knobs — gain/level/bass/middle/treble/reso/pres/bright
+  (confirmado testando 3 modelos bem diferentes no equipamento real):
     * Overdrive: "BLUES_OD", "TS8", "M-VAVE_OD", "M-VAVE_TS1", "M-VAVE_TS2", "JHS_1", "TS-9", "BD", "SuperOD", "BLUES_DR", "Black-BOX"
     * Distortion: "DS1", "DS2", "M-VAVE_DS", "RAT", "RAT_BT", "JHS_2", "MT_1", "MT_2", "TDS", "XC_DS", "QC_DS", "HIGAIN", "BIG-DR", "M90S", "M2000", "DS800", "DS900", "MAR-DS", "BOG_DS", "SONDO", "RED_DS", "MODEN_DS", "PLX"
     * Boost: "SUPA_1", "SUPA_2", "M-BOOSTER", "CL_BOOST", "MID-BOST", "BIG-MUFF"
@@ -222,7 +245,7 @@ equipamento do usuário):
     "Bareface110", "Bstert 115", "DavEendD410", "DgD210C", "DgDG212N", "FdBman410", "FdBmanSf210",
     "GKRB410A", "GKRB410B", "Hark410", "MbSubway210", "OgOBC212", "Pey115", "RanRB100", "SR115",
     "Tace412"
-- MOD (9 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
+- MOD (20 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
   6 slots param1..param6, preenchendo somente os que o modelo usa e os demais com 0):
     * "Chorus": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
     * "Tri Chorus": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
@@ -232,17 +255,40 @@ equipamento do usuário):
     * "Tri Tremolo": param1=Speed, param2=Depth, param3=Level, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
     * "Opto Tremolo": param1=Speed, param2=Depth, param3=Level, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
     * "Phaser": param1=Speed, param2=MidCut, param3=Reso, param4=Fb, param5=Sync (0=desligado, 1=ligado), param6=Sync Bpm (faixa 40-240, só relevante se Sync=1)
-    * "Vibrato": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1) [ESTIMATIVA NÃO CONFIRMADA]
-- DLY: "Analog", "Digital", "Tape", "Mod", "None"
-- REV: "Hall", "Room", "Plate", "Spring", "Chamber", "None"
+    * "Vibrato": param1=Speed, param2=Depth, param3=Mix, param4=Sync (0=desligado, 1=ligado), param5=Sync Bpm (faixa 40-240, só relevante se Sync=1)
+    * "Autofilter": param1=Speed, param2=Min, param3=Max, param4=Mix, param5=Fb
+    * "Univibe": param1=Speed, param2=Depth, param3=Mix
+    * "Tri Vibrato", "Opto Vibrato", "Tri Univibe": use a MESMA lista de parâmetros do modelo base sem "Tri"/"Opto" (ex.: Tri Vibrato = Vibrato)
+    * "Phaser Stereo", "Flanger Stereo", "Vibe Stereo", "Chorus Stereo", "Tremolo Stereo", "Vibrato Stereo": use a MESMA lista de parâmetros do modelo mono correspondente (ex.: Chorus Stereo = Chorus; Vibe Stereo = Univibe)
 
-OBSERVAÇÃO IMPORTANTE: DS, AMP, CAB, WAH, FX, GATE e MOD agora têm listas oficiais e completas
-de modelos reais (extraídas da documentação do fabricante) — use EXATAMENTE os nomes e o mapa de
-parâmetros mostrados acima para cada um, copiando o nome do modelo caractere por caractere (sem
-mudar maiúsculas/minúsculas, espaços ou hífens). Apenas DLY, REV e EQ ainda não têm uma lista de
-modelos nomeados confirmada pelo fabricante — para esses, use somente as categorias genéricas
-abaixo (não invente nomes de marcas de pedais reais como "Cry Baby", "Big Muff" etc. — eles NÃO
-existem na MK-300).
+- DLY (27 modelos reais, cada um com seus PRÓPRIOS parâmetros — envie sempre os
+  6 slots param1..param6, preenchendo somente os que o modelo usa e os demais com 0.
+  param1=Time, param2=Fb, param3=Mix SEMPRE, em TODOS os modelos):
+    * "Clean", "Echo", "Analog", "PingPong Stereo": só param1=Time, param2=Fb, param3=Mix
+    * "Modern", "Reverse": param1=Time, param2=Fb, param3=Mix, param4=Phaser, param5=Mod
+    * "Duck": param1=Time, param2=Fb, param3=Mix, param4=Release, param5=Speed, param6=Depth
+    * "Dtype", "Lofi": param1=Time, param2=Fb, param3=Mix, param4=Grit, param5=Speed, param6=Depth
+    * "Tremolo", "Pattern": param1=Time, param2=Fb, param3=Mix, param4=Pattern, param5=Speed, param6=Depth
+    * "Filter": param1=Time, param2=Fb, param3=Mix, param4=Filter, param5=Speed, param6=Depth
+    * "Dual": param1=Time, param2=Fb, param3=Mix, param4=T-Mode, param5=Speed, param6=Depth
+    * "Ice": param1=Time, param2=Fb, param3=Mix, param4=Pitch, param5=Mod
+    * Qualquer modelo "X Stereo" (Clean Stereo, Modern Stereo, Echo Stereo, Analog Stereo, Duck Stereo,
+      Dtype Stereo, Tremolo Stereo, Filter Stereo, Dual Stereo, Lofi Stereo, Pattern Stereo, Ice Stereo,
+      Reverse Stereo): use a MESMA lista de parâmetros do modelo mono "X" correspondente (confirmado
+      que Duck Stereo == Duck; os demais seguem o mesmo padrão)
+
+- REV (18 modelos reais — TODO modelo usa os MESMOS 5 knobs: decay, mix, high_pass, low_pass, mod_depth,
+  não use param1..paramN aqui, os nomes já são fixos):
+    "Room", "Hall", "Plate", "Spring", "Shimmer", "Bloom", "Cloud", "Lofi", "Swell",
+    "Room stereo", "Hall stereo", "Plate stereo", "Spring stereo", "Shimmer stereo",
+    "Bloom stereo", "Cloud stereo", "Lofi stereo", "Swell stereo"
+
+OBSERVAÇÃO IMPORTANTE: DS, AMP, CAB, WAH, FX, GATE, MOD, DLY e REV agora têm listas oficiais e
+completas de modelos reais (lidas diretamente do equipamento físico via app oficial, não do
+manual — o manual estava incompleto/errado para vários desses módulos) — use EXATAMENTE os
+nomes e o mapa de parâmetros mostrados acima para cada um, copiando o nome do modelo caractere
+por caractere (sem mudar maiúsculas/minúsculas, espaços ou hífens). Só o EQ (bandas de graves/
+agudos) não tem "type" — é sempre o mesmo conjunto fixo de parâmetros.
 
 EXEMPLO DE SAÍDA (Resumido):
 {
@@ -434,29 +480,36 @@ Retorne SOMENTE o JSON conforme especificado no sistema."""
         }
         
         # Add pedals to schema with specific parameters to prevent 'too many states' schema error
-        # WAH/FX/GATE/MOD usam slots posicionais genéricos (param1..paramN) porque
-        # cada modelo real tem seu próprio conjunto de parâmetros — ver MAX_PARAMS
-        # e TIPOS VÁLIDOS no SYSTEM_PROMPT para o mapa slot -> nome real por modelo.
+        # WAH/FX/GATE/MOD/DLY usam slots posicionais genéricos (param1..paramN)
+        # porque cada modelo real tem seu próprio conjunto de parâmetros — ver
+        # MAX_PARAMS e TIPOS VÁLIDOS no SYSTEM_PROMPT para o mapa slot -> nome
+        # real por modelo. AMP/CAB/DS/REV têm layout FIXO (mesmos parâmetros
+        # não importa o modelo) — ver dzh_export.py para a explicação completa
+        # das duas famílias de módulo.
         pedal_params = {
             "WAH": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["WAH"] + 1)],
             "FX": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["FX"] + 1)],
             "GATE": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["GATE"] + 1)],
-            "DS": ["type", "gain", "tone", "level"],
+            # DS: confirmado em 2026-09-03 que todo modelo usa os MESMOS 8 knobs.
+            "DS": ["type", "gain", "level", "bass", "middle", "treble", "reso", "pres", "bright"],
             "AMP": ["type", "gain", "bass", "middle", "treble", "level", "presence"],
             "CAB": ["type", "level"],
             "EQ": ["bass", "low_mid", "mid", "high_mid", "treble", "level"],
             "MOD": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["MOD"] + 1)],
-            "DLY": ["type", "time", "feedback", "mix"],
-            "REV": ["type", "decay", "pre_delay", "mix"],
+            "DLY": ["type"] + [f"param{i}" for i in range(1, MAX_PARAMS["DLY"] + 1)],
+            # REV: confirmado em 2026-09-03 que Hall/Hall stereo/Room usam os
+            # MESMOS 5 knobs — nomes reais da UI (não "pre_delay", que não existe).
+            "REV": ["type", "decay", "mix", "high_pass", "low_pass", "mod_depth"],
             "VOL": ["volume"]
         }
 
         param_types = {
             "type": "STRING",
-            "gain": "INTEGER", "tone": "INTEGER", "bass": "INTEGER", "middle": "INTEGER",
+            "gain": "INTEGER", "bass": "INTEGER", "middle": "INTEGER",
             "treble": "INTEGER", "presence": "INTEGER", "low_mid": "INTEGER", "mid": "INTEGER",
-            "high_mid": "INTEGER", "level": "INTEGER", "time": "INTEGER", "feedback": "INTEGER",
-            "pre_delay": "INTEGER", "mix": "INTEGER", "decay": "INTEGER", "volume": "INTEGER",
+            "high_mid": "INTEGER", "level": "INTEGER", "mix": "INTEGER", "decay": "INTEGER",
+            "volume": "INTEGER", "reso": "INTEGER", "pres": "INTEGER", "bright": "INTEGER",
+            "high_pass": "INTEGER", "low_pass": "INTEGER", "mod_depth": "INTEGER",
         }
         for i in range(1, max(MAX_PARAMS.values()) + 1):
             param_types[f"param{i}"] = "INTEGER"
@@ -595,14 +648,14 @@ def export_dzh():
     """Gera um arquivo .dzh pronto para carregar na MK-300, a partir do
     resultado de uma análise de timbre (mesmo JSON usado no front-end).
 
-    IMPORTANTE (limitação conhecida e intencional): apenas os módulos AMP,
-    DS, CAB e VOL têm seus parâmetros numéricos gravados no binário, pois
-    foram os únicos com offsets confirmados por comparação byte-a-byte com
-    presets reais exportados do equipamento. O liga/desliga (bypass) é
-    gravado para os 11 módulos. Os demais parâmetros (WAH, FX, GATE, EQ,
-    MOD, DLY, REV) são copiados do preset-modelo sem alteração, então o
-    arquivo gerado é sempre um preset válido — só não reflete os valores
-    sugeridos pela IA para esses módulos específicos.
+    Desde 2026-09-03, TODOS os 11 módulos têm seu modelo (type) e seus
+    parâmetros numéricos gravados no binário — AMP/CAB/DS/REV/VOL/EQ usam
+    layout fixo (mesmos parâmetros pra qualquer modelo), e WAH/FX/GATE/MOD/
+    DLY usam layout posicional (param1..paramN, onde o significado de cada
+    slot depende do modelo escolhido — ver dzh_export.py). O liga/desliga
+    (bypass) é gravado para os 11 módulos. Um parâmetro que a IA não enviar
+    (ou um nome de modelo não reconhecido) mantém o valor do preset-modelo,
+    então o arquivo gerado é sempre um preset válido.
     """
     data = request.get_json(silent=True) or {}
     tone_data = data.get("tone_data")
@@ -612,7 +665,10 @@ def export_dzh():
         return jsonify({"error": "Dados do preset ausentes ou inválidos."}), 400
 
     try:
-        dzh_bytes, warnings = build_dzh(tone_data, preset_name, AMP_TYPES, CAB_TYPES, DS_TYPES)
+        dzh_bytes, warnings = build_dzh(
+            tone_data, preset_name, AMP_TYPES, CAB_TYPES, DS_TYPES,
+            rev_types=REV_TYPES, positional_models=POSITIONAL_MODELS,
+        )
     except FileNotFoundError:
         return jsonify({"error": "Arquivo-modelo do preset (assets/base_preset.dzh) não encontrado no servidor."}), 500
     except Exception as e:
@@ -637,13 +693,16 @@ def export_dzh():
 @app.route("/api/effects", methods=["GET"])
 def api_get_effects():
     """Catálogo de efeitos reais da MK-300, para o front-end mostrar o nome
-    certo de cada parâmetro conforme o modelo selecionado (WAH/FX/GATE/MOD
+    certo de cada parâmetro conforme o modelo selecionado (WAH/FX/GATE/MOD/DLY
     têm parâmetros diferentes por modelo — ver data/mk300_models.json)."""
     response = jsonify({
         "wah": WAH_MODELS,
         "fx": FX_MODELS,
         "gate": GATE_MODELS,
         "mod": MOD_MODELS,
+        "dly": DLY_MODELS,
+        "rev": REV_TYPES,
+        "ds_params": DS_PARAMS,
         "max_params": MAX_PARAMS,
     })
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"

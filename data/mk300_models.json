@@ -448,6 +448,19 @@
   ],
   "fx": [
     {
+      "name": "Wah-Wah",
+      "params": [
+        "Speed",
+        "Q",
+        "Mix",
+        "Width",
+        "Level",
+        "Sync",
+        "Sync Bpm"
+      ],
+      "note": "Compartilhado com a lista WAH (mesmo algoritmo). Confirmado que aparece no dropdown do modulo FX, no M-EFCS, antes de Lofi."
+    },
+    {
       "name": "Lofi",
       "params": [
         "Bit",
@@ -456,10 +469,17 @@
       ]
     },
     {
-      "name": "Pitch shifter",
+      "name": "Sense-Wah",
       "params": [
-        "Semi"
-      ]
+        "Sense",
+        "Attack",
+        "Q",
+        "fPeak",
+        "Mix",
+        "Width",
+        "Level"
+      ],
+      "note": "Compartilhado com a lista WAH (mesmo algoritmo). Confirmado que aparece no dropdown do modulo FX, no M-EFCS, entre Lofi e Boost."
     },
     {
       "name": "Boost",
@@ -513,7 +533,13 @@
         "Attack",
         "Wet Level",
         "Blend"
-      ]
+      ],
+      "offsets_confirmed": {
+        "Sustain": "0x5A",
+        "Attack": "0x5C",
+        "Wet Level": "0x5E",
+        "Blend": "0x60"
+      }
     },
     {
       "name": "Compress Pro",
@@ -566,6 +592,12 @@
       ]
     },
     {
+      "name": "Pitch shifter",
+      "params": [
+        "Semi"
+      ]
+    },
+    {
       "name": "Whammy",
       "params": null,
       "unconfirmed": true,
@@ -575,20 +607,6 @@
   "gate": [
     {
       "name": "AI Gate",
-      "params": [
-        "Gate",
-        "Bias"
-      ]
-    },
-    {
-      "name": "AI Ms Gate Gen2",
-      "params": [
-        "Gate",
-        "Bias"
-      ]
-    },
-    {
-      "name": "AI Ms Gate",
       "params": [
         "Gate",
         "Bias"
@@ -614,7 +632,14 @@
         "Thd",
         "Kw",
         "Ratio"
-      ]
+      ],
+      "offsets_confirmed": {
+        "Att": "0x72",
+        "Rel": "0x74",
+        "Thd": "0x76 (int16 assinado, ex.: -50 = 0xCE = 206)",
+        "Kw": "0x78",
+        "Ratio": "0x7A"
+      }
     },
     {
       "name": "Compress",
@@ -648,6 +673,13 @@
         "Tone",
         "Wet Level",
         "Blend"
+      ]
+    },
+    {
+      "name": "AI Ms Gate",
+      "params": [
+        "Gate",
+        "Bias"
       ]
     }
   ],
@@ -733,7 +765,13 @@
         "Fb",
         "Sync",
         "Sync Bpm"
-      ]
+      ],
+      "offsets_confirmed": {
+        "Speed": "0xEA (raw = valor*10, ex.: 1.1 -> 11)",
+        "MidCut": "0xEC",
+        "Reso": "0xEE",
+        "Fb": "0xF0"
+      }
     },
     {
       "name": "Vibrato",
@@ -746,6 +784,72 @@
       ],
       "unconfirmed": true,
       "note": "Descrição cortada na fonte antes de listar os parâmetros; lista inferida por padrão com os modelos MOD irmãos (Chorus/Tri Chorus), não confirmada."
+    },
+    {
+      "name": "Tri Vibrato",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Nao existia na lista anterior (extraida so do manual). Confirmado no dropdown do M-EFCS, params nao testados - provavelmente iguais a Vibrato."
+    },
+    {
+      "name": "Opto Vibrato",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados."
+    },
+    {
+      "name": "Univibe",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados."
+    },
+    {
+      "name": "Tri Univibe",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados."
+    },
+    {
+      "name": "Autofilter",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados."
+    },
+    {
+      "name": "Phaser Stereo",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados - provavelmente iguais a Phaser."
+    },
+    {
+      "name": "Flanger Stereo",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados - provavelmente iguais a Flanger."
+    },
+    {
+      "name": "Vibe Stereo",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados."
+    },
+    {
+      "name": "Chorus Stereo",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados - provavelmente iguais a Chorus."
+    },
+    {
+      "name": "Tremolo Stereo",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados - provavelmente iguais a Tremolo."
+    },
+    {
+      "name": "Vibrato Stereo",
+      "params": null,
+      "unconfirmed": true,
+      "note": "Novo. Params nao testados - provavelmente iguais a Vibrato."
     }
   ],
   "eq": [
@@ -758,7 +862,16 @@
         "800Hz",
         "1.6kHz",
         "3.2kHz"
-      ]
+      ],
+      "offsets_confirmed": {
+        "100Hz": "0xD2",
+        "200Hz": "0xD4",
+        "400Hz": "0xD6",
+        "800Hz": "0xD8",
+        "1.6kHz": "0xDA",
+        "3.2kHz": "0xDC"
+      },
+      "note": "Todas int16 assinado, raw = dB*2 (ex.: +0.5dB -> 1, -0.5dB -> 0xFFFF/-1). Confirmado por diff real no M-EFCS."
     },
     {
       "name": "Bass EQ 7",
@@ -770,7 +883,8 @@
         "800Hz",
         "4.5kHz",
         "10kHz"
-      ]
+      ],
+      "note": "Bass EQ 7 tem 7 bandas - offset das bandas extras nao confirmado, mas o padrao (slots sequenciais de 2 bytes a partir de 0xD2) deve continuar em 0xDE."
     },
     {
       "name": "Normal EQ 10",
@@ -785,7 +899,8 @@
         "4kHz",
         "8kHz",
         "16kHz"
-      ]
+      ],
+      "note": "Normal EQ 10 tem 10 bandas - offsets nao confirmados alem das 6 primeiras (mesma logica de 0xD2 em diante deve valer)."
     }
   ],
   "param_ranges": {
@@ -805,6 +920,544 @@
   "notes": {
     "wah_fx_gate_mod": "Modelos e parâmetros reais extraídos do documento oficial do fabricante (M-VAVE 'Effects Description', o mesmo catálogo que confirmou AMP/CAB/DS) em 2026-09. Cada modelo tem seu PRÓPRIO conjunto de parâmetros (não um genérico por módulo).",
     "dly_rev": "Não encontrados em nenhuma fonte acessível (o documento oficial corta antes de chegar em Delay/Reverb; manuals.plus e os PDFs no Scribd que aparentam ter essa informação bloqueiam acesso automatizado). Mantidos com categorias genéricas até serem confirmados.",
-    "dzh_export_scope": "O download .dzh continua escrevendo apenas AMP/CAB/DS (modelo+parâmetros), VOL (volume) e o liga/desliga dos 11 módulos — os únicos offsets binários confirmados por diff real. WAH/FX/GATE/MOD/DLY/REV agora têm nomes e parâmetros reais no app e na IA, mas ainda não têm offset binário confirmado, então continuam sendo copiados do preset-modelo no arquivo baixado."
+    "dzh_export_scope": "O download .dzh continua escrevendo apenas AMP/CAB/DS (modelo+parâmetros), VOL (volume) e o liga/desliga dos 11 módulos — os únicos offsets binários confirmados por diff real. WAH/FX/GATE/MOD/DLY/REV agora têm nomes e parâmetros reais no app e na IA, mas ainda não têm offset binário confirmado, então continuam sendo copiados do preset-modelo no arquivo baixado.",
+    "fx_gate_mod_rev_2026-09-03": "Sessao de confirmacao via M-EFCS conectado por USB (nao so o manual): as listas fx/gate/mod acima estavam ERRADAS/incompletas no manual oficial - a ordem real no dropdown do app (que e o que importa pro indice gravado no .dzh) e diferente e, no caso do MOD, tem o DOBRO de modelos (20 em vez de 9). REV nao tinha lista nenhuma antes; a lista `rev` acima (18 modelos) foi construida do zero lendo o dropdown do app. Confirmado (offsets binarios reais, por diff 1-parametro-por-vez) para 1 modelo representativo de cada modulo: FX/Compress, GATE/Pro Gate, MOD/Phaser, REV/Hall e Hall stereo, EQ(modulo da cadeia)/Guitar EQ 6. Os demais modelos de cada lista tem NOME e PARAMS corretos (lidos direto da UI) mas os offsets numericos dos parametros deles especificamente nao foram testados - so o indice de tipo (confirmado pra todos via o truque do label '<indice 1-based><nome>' que o combobox do M-EFCS mostra, ex.: 'F Compress' selecionado bateu index10 no FX).",
+    "master_eq_nao_e_o_preset": "A aba 'EQ' do topo do M-EFCS (separada da aba 'Effect') e um EQ PARAMETRICO GLOBAL de 4 bandas (Freq/Q/Gain por banda, mais Low Cut/High Cut) com botoes proprios 'Share EQ'/'Import EQ' - CONFIRMADO por diff que ele NAO fica gravado nos 448 bytes do preset .dzh (mudar o Gain de uma banda e exportar o preset atual nao mudou nenhum byte do arquivo). E uma configuracao separada do equipamento/app, formato ainda nao investigado.",
+    "ds_tem_ate_8_params": "O modulo DS pode ter ate 8 parametros dependendo do modelo (ex.: '33MID-BOST' mostrou Gain/Level/Bass/Middle/Treble/Reso/Pres/Bright - um bloco de EQ completo, nao so Gain/Level/Tone). Os offsets atuais em dzh_export.py (gain=0x8A, level=0x8C, tone=0x92) valem pros modelos simples de 3 parametros; modelos richer como esse usam slots adicionais ainda nao mapeados.",
+    "dly_2026-09-03": "DLY tinha lista fictícia (Analog/Digital/Tape/Mod/None) que NAO existe na pedaleira real - substituida pela lista real de 27 modelos lida diretamente do dropdown do M-EFCS. Igual a WAH/FX/GATE/MOD, cada modelo usa um subconjunto de ate 6 slots posicionais (base 0x102), com Time/Fb/Mix sempre nos 3 primeiros slots. offset confirmado por diff binario so no modelo Duck; os demais foram confirmados apenas via leitura da UI (rotulo e contagem de knobs), nao via diff byte-a-byte.",
+    "ds_8_params_2026-09-03": "DS tem 8 parametros fixos (Gain/Level/Bass/Middle/Treble/Reso/Pres/Bright), NAO apenas Gain/Tone/Level como o codigo antigo assumia. Confirmado por leitura direta de bytes em 0x8A-0x98 comparados com os valores mostrados na tela (30/70/51/50/50/0/88/85) - bateu exatamente, sem precisar de diff. O layout e IDENTICO em todos os modelos testados (2TS8, RAT, BIG-MUFF)."
+  },
+  "rev": [
+    {
+      "name": "Room",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Hall",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "offsets_confirmed": {
+        "Decay": "0x11A",
+        "Mix": "0x11C",
+        "High Pass": "0x11E",
+        "Low Pass": "0x120",
+        "Mod Depth": "0x122"
+      }
+    },
+    {
+      "name": "Plate",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Spring",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Shimmer",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Bloom",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Cloud",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Lofi",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Swell",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Room stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Hall stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "offsets_confirmed": {
+        "Decay": "0x11A",
+        "Mix": "0x11C",
+        "High Pass": "0x11E",
+        "Low Pass": "0x120",
+        "Mod Depth": "0x122"
+      }
+    },
+    {
+      "name": "Plate stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Spring stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Shimmer stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Bloom stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Cloud stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Lofi stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    },
+    {
+      "name": "Swell stereo",
+      "params": [
+        "Decay",
+        "Mix",
+        "High Pass",
+        "Low Pass",
+        "Mod Depth"
+      ],
+      "note": "Params inferidos por igualdade de layout com Hall/Hall stereo (mesmos 5 knobs na UI); nao testado individualmente por diff."
+    }
+  ],
+  "dly": [
+    {
+      "name": "Clean",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ]
+    },
+    {
+      "name": "Modern",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Phaser",
+        "Mod"
+      ]
+    },
+    {
+      "name": "Echo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ]
+    },
+    {
+      "name": "Analog",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ]
+    },
+    {
+      "name": "Duck",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Release",
+        "Speed",
+        "Depth"
+      ],
+      "offsets_confirmed": {
+        "Time": "0x102",
+        "Fb": "0x104",
+        "Mix": "0x106",
+        "Release": "0x108",
+        "Speed": "0x10a",
+        "Depth": "0x10c"
+      }
+    },
+    {
+      "name": "Dtype",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Grit",
+        "Speed",
+        "Depth"
+      ]
+    },
+    {
+      "name": "Tremolo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Pattern",
+        "Speed",
+        "Depth"
+      ]
+    },
+    {
+      "name": "Filter",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Filter",
+        "Speed",
+        "Depth"
+      ]
+    },
+    {
+      "name": "Dual",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "T-Mode",
+        "Speed",
+        "Depth"
+      ]
+    },
+    {
+      "name": "Lofi",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Grit",
+        "Speed",
+        "Depth"
+      ]
+    },
+    {
+      "name": "Pattern",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Pattern",
+        "Speed",
+        "Depth"
+      ]
+    },
+    {
+      "name": "Ice",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Pitch",
+        "Mod"
+      ]
+    },
+    {
+      "name": "Reverse",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Phaser",
+        "Mod"
+      ]
+    },
+    {
+      "name": "PingPong Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ],
+      "note": "So existe versao stereo (nao tem 'PingPong' mono)."
+    },
+    {
+      "name": "Clean Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Modern Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Phaser",
+        "Mod"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Echo Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Analog Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Duck Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Release",
+        "Speed",
+        "Depth"
+      ],
+      "offsets_confirmed": {
+        "Time": "0x102",
+        "Fb": "0x104",
+        "Mix": "0x106",
+        "Release": "0x108",
+        "Speed": "0x10a",
+        "Depth": "0x10c"
+      }
+    },
+    {
+      "name": "Dtype Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Grit",
+        "Speed",
+        "Depth"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Tremolo Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Pattern",
+        "Speed",
+        "Depth"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Filter Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Filter",
+        "Speed",
+        "Depth"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Dual Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "T-Mode",
+        "Speed",
+        "Depth"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Lofi Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Grit",
+        "Speed",
+        "Depth"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Pattern Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Pattern",
+        "Speed",
+        "Depth"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Ice Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Pitch",
+        "Mod"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    },
+    {
+      "name": "Reverse Stereo",
+      "params": [
+        "Time",
+        "Fb",
+        "Mix",
+        "Phaser",
+        "Mod"
+      ],
+      "note": "Parametros iguais ao modelo mono correspondente (confirmado por teste direto em Duck Stereo == Duck; os demais foram inferidos pelo mesmo padrao, nao testados individualmente)."
+    }
+  ],
+  "ds_params": [
+    "Gain",
+    "Level",
+    "Bass",
+    "Middle",
+    "Treble",
+    "Reso",
+    "Pres",
+    "Bright"
+  ],
+  "ds_offsets_confirmed": {
+    "Gain": "0x8A",
+    "Level": "0x8C",
+    "Bass": "0x8E",
+    "Middle": "0x90",
+    "Treble": "0x92",
+    "Reso": "0x94",
+    "Pres": "0x96",
+    "Bright": "0x98"
   }
 }
